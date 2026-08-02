@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/mainStyle.css">
+<title>Schedule a Wish – WishDora</title>
+<style>
+.page-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text);text-align:center;margin-bottom:8px;}
+.page-sub{font-size:.9rem;color:var(--muted);margin-bottom:2rem;text-align:center;}
+.form-section-title{font-size:.78rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin:1.5rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);}
+.delivery-options{display:flex;gap:8px;flex-wrap:wrap;}
+.delivery-opt{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:30px;border:1.5px solid var(--border2);cursor:pointer;font-size:.84rem;color:var(--text2);transition:all var(--tr);user-select:none;background:var(--surface2);}
+.delivery-opt input{display:none;}
+.delivery-opt.active{border-color:var(--accent);background:var(--accent-s);color:var(--accent);font-weight:500;}
+.container{max-width:1400px;margin:20px auto;padding:0 20px;}
+.form-wrapper{display:flex;gap:20px;}
+.form-left{flex:2;display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+.form-group{display:flex;flex-direction:column;gap:6px;font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.form-group input,.form-group textarea,.form-group select{padding:10px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none;transition:border-color var(--tr);}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(194,92,12,.1);}
+.full{grid-column:span 2;}
+.btn-schedule{width:100%;padding:14px;border:none;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--accent),#e05800);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(194,92,12,.35);transition:opacity var(--tr);display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-schedule:hover{opacity:.86;}
+.btn-schedule:disabled{opacity:.6;cursor:not-allowed;}
+.preview{flex:1;background:var(--surface2);padding:20px;border-radius:var(--radius);border:1px solid var(--border);}
+.preview h4{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);margin-bottom:12px;}
+.preview-box{border:1px dashed var(--border2);padding:15px;border-radius:var(--radius-sm);font-size:13px;color:var(--text2);line-height:1.6;}
+.preview-box hr{border:none;border-top:1px solid var(--border);margin:10px 0;}
+.preview-card{width:100%;max-width:220px;min-height:160px;margin:12px auto;border-radius:12px;overflow:hidden;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;padding:4px;}
+.preview-card img{width:100%;height:100%;max-height:220px;object-fit:contain;display:block;border-radius:8px;}
+.categories{margin-top:30px;}
+.categories h4{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);margin-bottom:12px;}
+.category-wrapper{position:relative;}
+.category-list{display:flex;gap:16px;overflow-x:auto;padding:10px 40px;}
+.category-list::-webkit-scrollbar{display:none;}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);font-size:22px;background:var(--surface);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;color:var(--text);}
+.arrow.left{left:0;}
+.arrow.right{right:0;}
+
+.login-notice{background:var(--accent-s);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:14px 18px;text-align:center;font-size:.88rem;color:var(--text2);margin-bottom:20px;}
+.login-notice a{color:var(--accent);font-weight:600;text-decoration:none;}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;}
+/* Modern Category Explorer & Card Modal Design System */
+.categories-header-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.categories-header-wrap h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  color: var(--text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cat-total-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 30px;
+  background: rgba(232, 113, 50, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(232, 113, 50, 0.25);
+}
+.cat-search-wrap {
+  position: relative;
+  max-width: 320px;
+  width: 100%;
+}
+.cat-search-input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  border-radius: 30px;
+  border: 1px solid var(--border2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 13.5px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  backdrop-filter: blur(10px);
+  transition: border-color .22s ease, box-shadow .22s ease, background .22s ease;
+}
+body.light-mode .cat-search-input {
+  background: rgba(255, 255, 255, 0.8);
+}
+.cat-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(228, 113, 50, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+}
+.cat-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.cat-empty-state {
+  color: var(--muted);
+  font-size: 14px;
+  padding: 36px 0;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  border: 1px dashed var(--border2);
+}
+
+.category-wrapper {
+  position: relative;
+  margin: 10px 0;
+}
+.category-wrapper::before,
+.category-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  z-index: 2;
+  pointer-events: none;
+}
+.category-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, var(--dark), transparent);
+}
+.category-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, var(--dark), transparent);
+}
+
+.category-list {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 12px 10px;
+  scroll-behavior: smooth;
+}
+.category-list::-webkit-scrollbar { display: none; }
+
+.cat-card {
+  width: 250px;
+  flex-shrink: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid var(--border2);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+body.light-mode .cat-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 247, 237, 0.7) 100%);
+  box-shadow: 0 8px 24px rgba(154, 91, 36, 0.08);
+}
+.cat-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 16px 36px rgba(228, 113, 50, 0.22);
+  border-color: var(--accent);
+}
+.cat-card-media {
+  height: 125px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(228,113,50,0.8), rgba(194,92,12,0.9));
+}
+.cat-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.cat-card:hover .cat-card-media img {
+  transform: scale(1.08);
+}
+.cat-card-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(13, 10, 8, 0.75);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cat-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.cat-card-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+.cat-card-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0 0 14px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.cat-card-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.cat-card-count {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(232, 113, 50, 0.12);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+.cat-card-explore-btn {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease;
+}
+.cat-card:hover .cat-card-explore-btn {
+  color: var(--accent);
+}
+.cat-card-explore-btn .arrow-icon {
+  transition: transform 0.2s ease;
+}
+.cat-card:hover .cat-card-explore-btn .arrow-icon {
+  transform: translateX(4px);
+}
+
+/* Modal Styling */
+.cat-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 8, 6, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: catFadeIn .25s ease;
+}
+.cat-modal-backdrop[hidden] { display: none !important; }
+
+.cat-modal {
+  width: 100%;
+  max-width: 820px;
+  max-height: 86vh;
+  background: var(--dark2);
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(228, 113, 50, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: catSlideUp .3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+body.light-mode .cat-modal {
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(154, 91, 36, 0.2);
+}
+.cat-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.cat-modal-header-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cat-modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), #e05800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(228, 113, 50, 0.3);
+  overflow: hidden;
+}
+.cat-modal-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cat-modal-header h3 {
+  font-family: 'Playfair Display', serif;
+  margin: 0;
+  color: var(--text);
+  font-size: 1.35rem;
+}
+.cat-modal-subtitle {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.cat-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  font-size: 18px;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.cat-modal-close:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: rotate(90deg);
+}
+
+.cat-modal-body {
+  padding: 22px 24px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 18px;
+}
+.cat-modal-empty {
+  grid-column: 1/-1;
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 0;
+  font-size: 14.5px;
+}
+
+.custom-upload-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, var(--accent), #e05800);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(228, 113, 50, 0.35);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.custom-upload-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.pick-card {
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--surface2);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 230px;
+}
+.pick-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  border-color: var(--accent);
+  background: rgba(13, 10, 8, 0.95);
+}
+.pick-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 24px rgba(228, 113, 50, 0.4);
+}
+.pick-card-img-wrap {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: height 0.3s ease, padding 0.3s ease;
+}
+.pick-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.4s ease, filter 0.3s ease;
+}
+.pick-card:hover .pick-card-img-wrap {
+  height: 100%;
+  padding: 0;
+}
+.pick-card:hover .pick-card-img {
+  transform: scale(1.05);
+  object-fit: contain;
+}
+.pick-card-active-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, var(--accent), #e05800);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: none;
+  z-index: 5;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+.pick-card.active .pick-card-active-badge {
+  display: block;
+}
+.pick-card-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 12px 14px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.25s ease, visibility 0.25s ease, height 0.25s ease;
+  margin-top: auto;
+}
+.pick-card:hover .pick-card-title,
+.pick-card:hover .pick-card-active-badge {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .cat-card { width: 170px; }
+  .cat-modal-body { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:768px){.form-wrapper{flex-direction:column;}.form-left{grid-template-columns:1fr;}.full{grid-column:1;}}
+
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="logo">
+    <img src="E:\WishSite\LogoWishdora.png" alt="WishDora Logo"
+         onerror="this.parentElement.innerHTML='<div class=\'logo-emoji\'>🎂</div>'">
+  </div>
+  <div class="tagline">Never Let a Special Day Feel Forgotten</div>
+  <div class="nav-icons">
+    <a href="index.html" class="nav-icon-btn" title="Home">🏠</a>
+    <button class="nav-icon-btn" id="modeBtn" onclick="DarkMode.toggle()" title="Toggle theme">🌙</button>
+    <a href="dashboard.html" class="nav-icon-btn nav-account-btn" title="Dashboard">👤</a>
+  </div>
+</header>
+
+<br><br>
+<div class="page-title">Schedule a Wish 🎁</div>
+<p class="page-sub">Fill in the details and we'll deliver your wish at exactly the right moment.</p>
+
+<!-- Login notice for guests -->
+<div class="container" id="loginNotice" style="display:none">
+  <div class="login-notice">
+    💡 <a href="signin.html">Sign in</a> or <a href="register.html">create a free account</a> to save and schedule wishes. Your wish will be sent from WishDora's server automatically!
+  </div>
+</div>
+
+<div class="container">
+<div class="form-wrapper">
+
+<!-- FORM -->
+<div class="form-left" id="wishForm">
+  <div class="form-group">
+    <label>Your Name</label>
+    <input id="senderName" type="text" placeholder="Your full name">
+  </div>
+  <div class="form-group">
+    <label>Greeting</label>
+    <input id="greeting" type="text" placeholder="Happy Birthday" value="Happy Birthday" oninput="updatePreview()">
+  </div>
+  <div class="form-group">
+    <label>Receiver Name</label>
+    <input id="receiverName" type="text" placeholder="Their name" oninput="updatePreview()">
+  </div>
+  <div class="form-group">
+    <label>Date</label>
+    <input id="scheduleDate" type="date" onchange="updatePreview()">
+  </div>
+  <div class="form-group">
+    <label>Receiver Email</label>
+    <input id="receiverEmail" type="email" placeholder="their@email.com" oninput="updatePreview()">
+  </div>
+  <div class="form-group">
+    <label>Send Time</label>
+    <input id="scheduleTime" type="time" value="09:00">
+  </div>
+  <div class="form-group">
+    <label>Receiver WhatsApp</label>
+    <input id="receiverWhatsapp" type="tel" placeholder="+94771234567">
+  </div>
+  <div class="form-group">
+    <label>Repeat</label>
+    <select id="repeat">
+      <option value="none">Does not repeat</option>
+      <option value="yearly">Yearly (auto-repeat each year)</option>
+      <option value="daily">Daily</option>
+    </select>
+  </div>
+
+  <div class="form-section-title full">💌 Message</div>
+  <div class="form-group full">
+    <label>Your heartfelt message</label>
+    <textarea id="message" rows="4" placeholder="Write your heartfelt message here…" oninput="updatePreview()"></textarea>
+  </div>
+
+  <div class="form-section-title full">⚙️ Delivery Options</div>
+  <div class="form-group full">
+    <label>Send Via</label>
+    <div class="delivery-options" id="deliveryOpts">
+      <label class="delivery-opt active" data-val="email"><input type="radio" name="delivery" value="email" checked> 📧 Email</label>
+      <label class="delivery-opt" data-val="whatsapp"><input type="radio" name="delivery" value="whatsapp"> 💬 WhatsApp</label>
+      <label class="delivery-opt" data-val="both"><input type="radio" name="delivery" value="both"> 📨 Both</label>
+    </div>
+  </div>
+
+  <div class="full">
+    <button class="btn-schedule" id="scheduleBtn" onclick="scheduleWish()">
+      🎁 Save & Schedule Wish
+    </button>
+  </div>
+</div>
+
+<!-- PREVIEW -->
+<div class="preview">
+  <h4>📬 Email Preview</h4>
+  <div class="preview-box">
+    <p id="prevTo"><strong>To:</strong> example@email.com</p>
+    <p id="prevSubj"><strong>Subject:</strong> Happy Birthday! 🎉</p>
+    <hr>
+    <p id="prevGreeting">Happy Birthday, [Name]!</p>
+    <p id="prevMsg" style="color:var(--muted);font-style:italic">Your message will appear here…</p>
+    <div class="preview-card" id="prevCard">🎨 Select a card below</div>
+    <p id="prevFrom" style="margin-top:12px;color:var(--muted)">With love,<br><strong>[Your Name]</strong></p>
+  </div>
+  <div style="margin-top:16px;font-size:12px;color:var(--muted);text-align:center">
+    ✅ Your wish will be sent automatically on the scheduled date
+  </div>
+</div>
+
+</div>
+
+<!-- GREETING CARD PICKER -->
+<!-- <div class="categories" style="padding:20px 0">
+  <h4>🎨 Select a Greeting Card</h4>
+  <div class="category-wrapper">
+    <div class="arrow left" onclick="scrollCat(-200)">‹</div>
+    <div class="category-list" id="catList">
+       Cards are generated by JS
+    </div>
+    <div class="arrow right" onclick="scrollCat(200)">›</div>
+  </div>
+</div>-->
+<!-- CATEGORY PICKER & EXPLORER -->
+<div class="categories" style="padding:28px 0 10px;">
+  <div class="categories-header-wrap">
+    <div>
+      <h4>🎨 Select a Greeting Card <span id="catTotalBadge" class="cat-total-badge">0 Categories</span></h4>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <label class="custom-upload-btn" title="Upload a custom photo or design from your device">
+        <input type="file" id="customImageInput" accept="image/*" style="display:none;" onchange="handleCustomImageUpload(event)">
+        📸 Upload Custom Picture
+      </label>
+      <div class="cat-search-wrap">
+        <span class="cat-search-icon">🔍</span>
+        <input type="text" id="catSearchInput" class="cat-search-input"
+               placeholder="Search categories…" autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <div class="category-wrapper">
+    <div class="arrow left" onclick="scrollCat(-280)">‹</div>
+    <div class="category-list" id="catList">
+      <!-- Category cards generated by JS -->
+    </div>
+    <div class="arrow right" onclick="scrollCat(280)">›</div>
+  </div>
+
+  <p id="catEmptyState" class="cat-empty-state" hidden>No categories found matching your search.</p>
+</div>
+
+<!-- CARD PICKER MODAL (shows cards belonging to one category) -->
+<div id="cardPickerBackdrop" class="cat-modal-backdrop" hidden>
+  <div class="cat-modal">
+    <div class="cat-modal-header">
+      <div class="cat-modal-header-info">
+        <div class="cat-modal-icon" id="cardPickerIcon">🎁</div>
+        <div>
+          <h3 id="cardPickerTitle">Category</h3>
+          <p id="cardPickerSubtitle" class="cat-modal-subtitle"></p>
+        </div>
+      </div>
+      <button type="button" id="cardPickerCloseBtn" class="cat-modal-close" aria-label="Close">&times;</button>
+    </div>
+    <div id="cardPickerBody" class="cat-modal-body">
+      <!-- Cards for the selected category, generated by JS -->
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<br><br>
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h5>Quick Links</h5>
+      <a href="index.html" class="footer-link">Home</a>
+      <a href="#how" class="footer-link">How It Works</a>
+      <a href="#why" class="footer-link">Why WishDora?</a>
+      <a href="#reviews" class="footer-link">User Reviews</a>
+    </div>
+    <div class="footer-col">
+      <h5>About WishDora</h5>
+      <p>A simple platform that helps you schedule and send personalized birthday wishes automatically — ensuring no special moment is ever missed.</p>
+    </div>
+    <div class="footer-col">
+      <h5>Account</h5>
+      <a href="register.html" class="footer-link">Create Account</a>
+      <a href="signin.html" class="footer-link">Sign In</a>
+      <a href="dashboard.html" class="footer-link">Dashboard</a>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <a href="#" class="footer-link" onclick="toast('Contact form coming soon!','inf')">Contact Us</a>
+      <a href="#" class="footer-link" onclick="toast('Help center coming soon!','inf')">Help Center</a>
+    </div>
+  </div>
+  <p class="footer-copy">© 2026 WishDora. All Rights Reserved.</p>
+</footer>
+<!-- FOOTER 
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col"><h5>Quick Links</h5>
+      <a href="index.html" class="footer-link">Home</a>
+      <a href="dashboard.html" class="footer-link">Dashboard</a>
+    </div>
+    <div class="footer-col"><h5>Account</h5>
+      <a href="register.html" class="footer-link">Create Account</a>
+      <a href="signin.html" class="footer-link">Sign In</a>
+    </div>
+  </div>
+  <p class="footer-copy">© 2026 WishDora. All Rights Reserved.</p>
+</footer>-->
+
+<script src="../js/api.js"></script>
+<script>
+DarkMode.init();
+updateNavbar();
+
+// Show login notice if not logged in
+if (!Auth.isLoggedIn()) {
+  document.getElementById('loginNotice').style.display = 'block';
+}
+
+// Pre-fill sender name from logged-in user
+const user = Auth.getUser();
+if (user) {
+  document.getElementById('senderName').value = user.name;
+}
+
+// Set min date to today
+document.getElementById('scheduleDate').min = new Date().toISOString().split('T')[0];
+
+// Delivery options selection
+let deliveryVal = 'email';
+document.getElementById('deliveryOpts').addEventListener('click', e => {
+  const opt = e.target.closest('.delivery-opt');
+  if (!opt) return;
+  document.querySelectorAll('.delivery-opt').forEach(o => o.classList.remove('active'));
+  opt.classList.add('active');
+  deliveryVal = opt.dataset.val;
+  updatePreview();
+});
+
+// Preview updater
+function updatePreview() {
+  const email = document.getElementById('receiverEmail').value || 'example@email.com';
+  const greeting = document.getElementById('greeting').value || 'Happy Birthday';
+  const receiver = document.getElementById('receiverName').value || '[Name]';
+  const message = document.getElementById('message').value || 'Your message will appear here…';
+  const sender = document.getElementById('senderName').value || '[Your Name]';
+  document.getElementById('prevTo').innerHTML = `<strong>To:</strong> ${email}`;
+  document.getElementById('prevSubj').innerHTML = `<strong>Subject:</strong> ${greeting}, ${receiver}! 🎉`;
+  document.getElementById('prevGreeting').textContent = `${greeting}, ${receiver}!`;
+  document.getElementById('prevMsg').textContent = message;
+  document.getElementById('prevFrom').innerHTML = `With love,<br><strong>${sender}</strong>`;
+}
+
+let selectedCard = null;
+let allCategories = [];
+const catList = document.getElementById('catList');
+
+// ---------- Category grid ----------
+
+function renderCategoryCard(cat) {
+  const wrap = document.createElement('div');
+  wrap.className = 'cat-card';
+  wrap.onclick = () => openCardPicker(cat);
+
+  const count = cat.cardCount ?? 0;
+  const categoryImage = cat.imageUrl || cat.image;
+
+  const media = document.createElement('div');
+  media.className = 'cat-card-media';
+  if (cat.color) media.style.background = cat.color;
+  media.innerHTML = categoryImage
+    ? `<img src="${categoryImage}" alt="${escapeCatHtml(cat.name)}" loading="lazy" />`
+    : (cat.icon || '🎁');
+
+  if (count > 0) {
+    const badge = document.createElement('div');
+    badge.className = 'cat-card-badge';
+    badge.textContent = `✨ ${count} Card${count === 1 ? '' : 's'}`;
+    media.appendChild(badge);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'cat-card-body';
+  body.innerHTML = `
+    <p class="cat-card-name">${escapeCatHtml(cat.name)}</p>
+    ${cat.description ? `<p class="cat-card-desc">${escapeCatHtml(cat.description)}</p>` : ''}
+    <div class="cat-card-footer">
+      <span class="cat-card-count">${count} Card${count === 1 ? '' : 's'} Available</span>
+      <button type="button" class="cat-card-explore-btn" onclick="event.stopPropagation(); openCardPicker(${JSON.stringify(cat).replace(/"/g, '&quot;')})">
+        Explore <span class="arrow-icon">→</span>
+      </button>
+    </div>`;
+
+  wrap.appendChild(media);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+function handleCustomImageUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image file 🖼️', 'error');
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Image size should be under 5MB ⚠️', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    const imageName = file.name.replace(/\.[^/.]+$/, '') || 'Custom Picture';
+    selectedCard = {
+      id: null,
+      title: imageName,
+      imageUrl: dataUrl,
+      kind: 'uploaded_custom',
+    };
+
+    document.getElementById('prevCard').innerHTML =
+      `<img src="${dataUrl}" alt="${escapeCatHtml(imageName)}" style="width:100%;height:100%;object-fit:cover;" />`;
+
+    showToast(`📸 Custom picture "${imageName}" selected!`, 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderCategoryCard(cat) {
+  const wrap = document.createElement('div');
+  wrap.className = 'cat-card';
+
+  if (cat.isUploadCard) {
+    wrap.onclick = () => document.getElementById('customImageInput')?.click();
+  } else {
+    wrap.onclick = () => openCardPicker(cat);
+  }
+
+  const count = cat.cardCount ?? 0;
+  const categoryImage = cat.imageUrl || cat.image;
+
+  const media = document.createElement('div');
+  media.className = 'cat-card-media';
+  if (cat.color) media.style.background = cat.color;
+  media.innerHTML = categoryImage
+    ? `<img src="${categoryImage}" alt="${escapeCatHtml(cat.name)}" loading="lazy" />`
+    : (cat.icon || '🎁');
+
+  if (count > 0 && !cat.isUploadCard) {
+    const badge = document.createElement('div');
+    badge.className = 'cat-card-badge';
+    badge.textContent = `✨ ${count} Card${count === 1 ? '' : 's'}`;
+    media.appendChild(badge);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'cat-card-body';
+  body.innerHTML = `
+    <p class="cat-card-name">${escapeCatHtml(cat.name)}</p>
+    ${cat.description ? `<p class="cat-card-desc">${escapeCatHtml(cat.description)}</p>` : ''}
+    <div class="cat-card-footer">
+      <span class="cat-card-count">${cat.isUploadCard ? 'Custom Upload' : `${count} Card${count === 1 ? '' : 's'} Available`}</span>
+      <button type="button" class="cat-card-explore-btn" onclick="event.stopPropagation(); ${cat.isUploadCard ? "document.getElementById('customImageInput')?.click()" : `openCardPicker(${JSON.stringify(cat).replace(/"/g, '&quot;')})`}">
+        ${cat.isUploadCard ? 'Upload 📸' : 'Explore <span class="arrow-icon">→</span>'}
+      </button>
+    </div>`;
+
+  wrap.appendChild(media);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+function renderCategoryList(categories) {
+  catList.innerHTML = '';
+  const emptyEl = document.getElementById('catEmptyState');
+  const badgeEl = document.getElementById('catTotalBadge');
+
+  if (badgeEl) {
+    badgeEl.textContent = `${categories.length} Categor${categories.length === 1 ? 'y' : 'ies'}`;
+  }
+
+  if (!categories.length) {
+    emptyEl.hidden = false;
+    return;
+  }
+  emptyEl.hidden = true;
+  categories.forEach((cat) => catList.appendChild(renderCategoryCard(cat)));
+}
+
+function getFallbackCategories() {
+  return [
+    {
+      _id: 'cat_upload_own',
+      name: 'Upload Your Picture',
+      description: 'Upload a custom photo or design from your device',
+      icon: '📸',
+      color: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+      cardCount: 1,
+      isUploadCard: true,
+    },
+    {
+      _id: 'cat_birthday',
+      name: 'Birthday Wishes',
+      description: 'Celebrate special birthdays with personalized cards',
+      icon: '🎂',
+      color: 'linear-gradient(135deg, #e8782a, #c25c0c)',
+      cardCount: 5,
+      _fallbackCard: { emoji: '🎂', label: 'Birthday Card', color: '#fff1df' },
+    },
+    {
+      _id: 'cat_anniversary',
+      name: 'Anniversary & Love',
+      description: 'Heartfelt wishes for couples and milestones',
+      icon: '💍',
+      color: 'linear-gradient(135deg, #e11d48, #9f1239)',
+      cardCount: 4,
+      _fallbackCard: { emoji: '💍', label: 'Anniversary Card', color: '#ffe4e6' },
+    },
+    {
+      _id: 'cat_celebration',
+      name: 'Congratulations & Joy',
+      description: 'Celebrate achievements, promotions, and new beginnings',
+      icon: '🎉',
+      color: 'linear-gradient(135deg, #059669, #047857)',
+      cardCount: 6,
+      _fallbackCard: { emoji: '🎉', label: 'Celebration Card', color: '#dcfce7' },
+    },
+    {
+      _id: 'cat_gratitude',
+      name: 'Thank You & Warmth',
+      description: 'Express heartfelt thanks and appreciation',
+      icon: '💌',
+      color: 'linear-gradient(135deg, #7c3aed, #5b21b6)',
+      cardCount: 3,
+      _fallbackCard: { emoji: '💌', label: 'Thank You Card', color: '#f3e8ff' },
+    },
+  ];
+}
+
+async function loadGreetingCards() {
+  try {
+    const data = await apiFetch('/categories');
+    const apiCategories = data.categories || [];
+    
+    // Always insert Upload Custom Picture card at beginning
+    const uploadCard = {
+      _id: 'cat_upload_own',
+      name: 'Upload Your Picture',
+      description: 'Upload a custom photo or design from your device',
+      icon: '📸',
+      color: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+      cardCount: 1,
+      isUploadCard: true,
+    };
+
+    if (apiCategories.length) {
+      allCategories = [uploadCard, ...apiCategories];
+    } else {
+      allCategories = getFallbackCategories();
+    }
+    renderCategoryList(allCategories);
+  } catch (err) {
+    console.warn('Could not load categories from API:', err.message);
+    allCategories = getFallbackCategories();
+    renderCategoryList(allCategories);
+  }
+}
+
+// ---------- Search ----------
+
+document.getElementById('catSearchInput')?.addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  const filtered = allCategories.filter((c) => 
+    (c.name || '').toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q)
+  );
+  renderCategoryList(filtered);
+});
+
+// ---------- Modal: cards within a category ----------
+
+async function openCardPicker(cat) {
+  document.getElementById('cardPickerTitle').textContent = cat.name;
+  const count = cat.cardCount ?? 0;
+  document.getElementById('cardPickerSubtitle').textContent = cat.description 
+    ? `${cat.description} • ${count} Card${count === 1 ? '' : 's'} available` 
+    : `${count} Card${count === 1 ? '' : 's'} available in this collection`;
+
+  const iconContainer = document.getElementById('cardPickerIcon');
+  if (iconContainer) {
+    const img = cat.imageUrl || cat.image;
+    iconContainer.innerHTML = img 
+      ? `<img src="${img}" alt="${escapeCatHtml(cat.name)}" />`
+      : (cat.icon || '🎁');
+  }
+
+  const body = document.getElementById('cardPickerBody');
+  body.innerHTML = '<p class="cat-modal-empty">✨ Discovering cards…</p>';
+  document.getElementById('cardPickerBackdrop').hidden = false;
+  document.body.style.overflow = 'hidden';
+
+  if (cat._fallbackCard) {
+    body.innerHTML = '';
+    body.appendChild(renderPickCard(cat._fallbackCard));
+    return;
+  }
+
+  try {
+    const data = await apiFetch(`/cards?category=${cat._id}&limit=50`);
+    const cards = data.cards || [];
+    body.innerHTML = '';
+    if (!cards.length) {
+      body.innerHTML = '<p class="cat-modal-empty">No cards added to this category yet. Check back soon! 🎁</p>';
+      return;
+    }
+    cards.forEach((card) => body.appendChild(renderPickCard(card)));
+  } catch (err) {
+    body.innerHTML = '<p class="cat-modal-empty">Could not load cards. Please try again.</p>';
+    console.warn('Could not load cards for category:', err.message);
+  }
+}
+
+function renderPickCard(card) {
+  const wrap = document.createElement('div');
+  const isCurrentlySelected = selectedCard && (
+    (card._id && selectedCard.id === card._id) || 
+    (card.imageUrl && selectedCard.imageUrl === card.imageUrl)
+  );
+
+  wrap.className = `pick-card ${isCurrentlySelected ? 'active' : ''}`;
+
+  const imgContent = card.imageUrl
+    ? `<img class="pick-card-img" src="${card.imageUrl}" alt="${escapeCatHtml(card.title || 'Greeting card')}" loading="lazy" />`
+    : `<div class="pick-card-img" style="display:flex;align-items:center;justify-content:center;font-size:48px;background:${card.color || '#fff7ed'}">${card.emoji || '🎁'}</div>`;
+
+  wrap.innerHTML = `
+    <div class="pick-card-img-wrap">
+      ${imgContent}
+      <div class="pick-card-active-badge">✓ Selected</div>
+    </div>
+    <div class="pick-card-title">${escapeCatHtml(card.title || card.label || 'Greeting Card')}</div>`;
+
+  wrap.onclick = () => {
+    document.querySelectorAll('.pick-card').forEach((c) => c.classList.remove('active'));
+    wrap.classList.add('active');
+
+    selectCard(card);
+    showToast(`Card selected: "${card.title || card.label || 'Greeting Card'}" 🎨`, 'success');
+    setTimeout(() => closeCardPicker(), 220);
+  };
+  return wrap;
+}
+
+function closeCardPicker() {
+  const backdrop = document.getElementById('cardPickerBackdrop');
+  if (!backdrop) return;
+  backdrop.hidden = true;
+  document.body.style.overflow = '';
+}
+
+const cardPickerBackdrop = document.getElementById('cardPickerBackdrop');
+const cardPickerCloseBtn = document.getElementById('cardPickerCloseBtn');
+
+cardPickerCloseBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeCardPicker();
+});
+
+function selectCard(card) {
+  if (card.imageUrl) {
+    selectedCard = { id: card._id, title: card.title, imageUrl: card.imageUrl, kind: 'uploaded' };
+    document.getElementById('prevCard').innerHTML =
+      `<img src="${card.imageUrl}" alt="${escapeCatHtml(card.title || 'Selected card')}" style="width:100%;height:100%;object-fit:cover;" />`;
+  } else {
+    selectedCard = { emoji: card.emoji, label: card.label, color: card.color, kind: 'fallback' };
+    document.getElementById('prevCard').innerHTML =
+      `<div style="width:100%;height:100%;background:${card.color};display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:50px">${card.emoji}<div style="font-size:13px;color:#555;margin-top:8px">${escapeCatHtml(card.label)}</div></div>`;
+  }
+}
+
+function scrollCat(amount) {
+  document.getElementById('catList')?.scrollBy({ left: amount, behavior: 'smooth' });
+}
+
+function escapeCatHtml(str = '') {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+cardPickerBackdrop?.addEventListener('click', (e) => {
+  if (!e.target.closest('.cat-modal')) closeCardPicker();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && cardPickerBackdrop && !cardPickerBackdrop.hidden) closeCardPicker();
+});
+
+loadGreetingCards();
+
+// ── Schedule wish ──────────────────────────────────────────
+async function scheduleWish() {
+  // Auth check
+  if (!Auth.isLoggedIn()) {
+    showToast('Please sign in to schedule a wish 🔐', 'error');
+    setTimeout(() => window.location.href = 'signin.html', 1200);
+    return;
+  }
+
+  const senderName = document.getElementById('senderName').value.trim();
+  const receiverName = document.getElementById('receiverName').value.trim();
+  const receiverEmail = document.getElementById('receiverEmail').value.trim();
+  const receiverWhatsapp = document.getElementById('receiverWhatsapp').value.trim();
+  const greeting = document.getElementById('greeting').value.trim();
+  const message = document.getElementById('message').value.trim();
+  const dateVal = document.getElementById('scheduleDate').value;
+  const timeVal = document.getElementById('scheduleTime').value || '09:00';
+  const repeat = document.getElementById('repeat').value;
+
+  // Validation
+  if (!receiverName) { showToast('Enter receiver name', 'error'); return; }
+  if (!message) { showToast('Write a message', 'error'); return; }
+  if (!dateVal) { showToast('Select a date', 'error'); return; }
+  if (deliveryVal !== 'whatsapp' && !receiverEmail) { showToast('Enter receiver email for email delivery', 'error'); return; }
+  if (deliveryVal !== 'email' && !receiverWhatsapp) { showToast('Enter receiver WhatsApp number', 'error'); return; }
+
+  // Build schedule datetime
+  const scheduleDate = new Date(`${dateVal}T${timeVal}:00`).toISOString();
+
+  const btn = document.getElementById('scheduleBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Scheduling…';
+
+  try {
+    const data = await WishesAPI.create({
+      senderName: senderName || user?.name || 'WishDora User',
+      receiverName,
+      receiverEmail,
+      receiverWhatsapp,
+      greeting,
+      message,
+      selectedCardId: selectedCard?.id || null,
+      cardImage: selectedCard?.imageUrl || '',
+      scheduleDate,
+      scheduleTime: timeVal,
+      repeat,
+      deliveryMethod: deliveryVal,
+    });
+
+    showToast('🎉 ' + data.message, 'success');
+    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+  } catch (err) {
+    showToast('❌ ' + (err.message || 'Failed to schedule wish'), 'error');
+    btn.disabled = false;
+    btn.innerHTML = '🎁 Save & Schedule Wish';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard – WishDora</title>
+  <link rel="stylesheet" href="css/mainStyle.css">
+  <link rel="stylesheet" href="css/userdashboard.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="logo">
+    <img src="E:\WishSite\LogoWishdora.png" alt="WishDora Logo"
+         onerror="this.parentElement.innerHTML='<div class=\'logo-emoji\'>🎂</div>'">
+  </div></div>
+  <div class="tagline">Never Let a Special Day Feel Forgotten</div>
+  <div class="nav-icons">
+    <a href="index.html" class="nav-icon-btn" title="Home">🏠</a>
+    <button class="nav-icon-btn" id="modeBtn" onclick="toggleDark()" title="Toggle theme">🌙</button>
+    <a href="wishform.html" class="nav-icon-btn" title="New Wish">🎁</a>
+  </div>
+</header>
+
+<!-- DASHBOARD -->
+<section class="dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="profile-card">
+      <div class="avatar">U <div class="avatar-edit">✏</div></div>
+      <div class="profile-name" id="profileName">Hello, User!</div>
+      <div class="profile-email" id="profileEmail">user@wishdora.com</div>
+      <div class="stats-grid">
+        <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-item"><div class="stat-num" id="statSent">0</div><div class="stat-lbl">Sent</div></div>
+        <div class="stat-item"><div class="stat-num" id="statPending">0</div><div class="stat-lbl">Pending</div></div>
+        <div class="stat-item"><div class="stat-num" id="statDraft">0</div><div class="stat-lbl">Drafts</div></div>
+      </div>
+    </div>
+
+    <div class="mini-calendar-card">
+      <div class="mini-cal-header">
+        <button class="mini-cal-nav" onclick="calNav(-1)">&#8249;</button>
+        <span class="mini-cal-title" id="calMonthTitle"></span>
+        <button class="mini-cal-nav" onclick="calNav(1)">&#8250;</button>
+      </div>
+      <div class="mini-cal-grid" id="calGrid"></div>
+    </div>
+
+    <button class="cta-btn" onclick="window.location.href='wishform.html'">🎁 Make A Wish Now</button>
+    <button class="logout-btn" onclick="openLogout()">⏻ Log Out</button>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel">
+
+    <div class="upcoming-card">
+      <h4>📅 Upcoming Events</h4>
+      <div class="upcoming-list" id="upcomingList">
+        <div style="color:var(--muted);font-size:0.85rem">Loading…</div>
+      </div>
+    </div>
+
+    <div class="activities-card">
+      <div class="activity-header">
+        <h3>My Wishes <span class="badge-count" id="actCount">0</span></h3>
+        <div class="header-actions">
+          <div class="search-box">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="Search by name…" oninput="renderTable()">
+          </div>
+          <select class="filter-select" id="filterStatus" onchange="renderTable()">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Sent">Sent</option>
+            <option value="Failed">Failed</option>
+            <option value="Draft">Draft</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Loading spinner -->
+      <div id="loadingState" style="text-align:center;padding:40px;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:10px">⏳</div>
+        <div>Loading your wishes…</div>
+      </div>
+
+      <div class="table-wrap" id="tableWrap" style="display:none">
+        <table>
+          <thead>
+            <tr>
+              <th>Recipient</th>
+              <th>Scheduled Date</th>
+              <th>Status</th>
+              <th>Delivery</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div class="es-icon">🎈</div>
+        <p>No wishes yet. Click <strong>Make A Wish Now</strong> to schedule one!</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h5>Quick Links</h5>
+      <a href="index.html" class="footer-link">Home</a>
+      <a href="#how" class="footer-link">How It Works</a>
+      <a href="#why" class="footer-link">Why WishDora?</a>
+      <a href="#reviews" class="footer-link">User Reviews</a>
+    </div>
+    <div class="footer-col">
+      <h5>About WishDora</h5>
+      <p>A simple platform that helps you schedule and send personalized birthday wishes automatically — ensuring no special moment is ever missed.</p>
+    </div>
+    <div class="footer-col">
+      <h5>Account</h5>
+      <a href="register.html" class="footer-link">Create Account</a>
+      <a href="signin.html" class="footer-link">Sign In</a>
+      <a href="dashboard.html" class="footer-link">Dashboard</a>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <a href="#" class="footer-link" onclick="toast('Contact form coming soon!','inf')">Contact Us</a>
+      <a href="#" class="footer-link" onclick="toast('Help center coming soon!','inf')">Help Center</a>
+    </div>
+  </div>
+  <p class="footer-copy">© 2026 WishDora. All Rights Reserved.</p>
+</footer>
+<!-- FOOTER 
+<footer>
+  <div class="footer-container">
+    <div>
+      <h4>Quick Links</h4>
+      <a class="footer-link" href="index.html">Home</a>
+      <a class="footer-link" href="wishform.html">Schedule a Wish</a>
+    </div>
+    <div>
+      <h4>About</h4>
+      <p style="font-size:0.85rem;color:var(--muted);line-height:1.6">Never let a special day feel forgotten.</p>
+    </div>
+    <div>
+      <h4>Support</h4>
+      <a class="footer-link" href="#" onclick="showToast('Help Center coming soon!','info')">Help Center</a>
+    </div>
+  </div>
+  <p class="copyright">© 2026 WishDora. All Rights Reserved.</p>
+</footer>-->
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Delete Wish</span>
+      <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+    </div>
+    <p class="confirm-text">Are you sure you want to delete the wish for <span class="confirm-highlight" id="deleteTargetName"></span>? This cannot be undone.</p>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn-save" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="confirmDelete()">🗑 Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGOUT MODAL -->
+<div class="modal-overlay" id="logoutModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Log Out</span>
+      <button class="modal-close" onclick="closeModal('logoutModal')">✕</button>
+    </div>
+    <p class="confirm-text">Are you sure you want to log out of WishDora?</p>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('logoutModal')">Stay Logged In</button>
+      <button class="btn-save" onclick="doLogout()">⏻ Log Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Wish Preview</span>
+      <button class="modal-close" onclick="closeModal('previewModal')">✕</button>
+    </div>
+    <div class="preview-meta">
+      <div class="preview-field"><div class="preview-field-lbl">To</div><div class="preview-field-val" id="pvName">–</div></div>
+      <div class="preview-field"><div class="preview-field-lbl">Greeting</div><div class="preview-field-val" id="pvEvent">–</div></div>
+      <div class="preview-field"><div class="preview-field-lbl">Scheduled</div><div class="preview-field-val" id="pvDate">–</div></div>
+      <div class="preview-field"><div class="preview-field-lbl">Via</div><div class="preview-field-val" id="pvDelivery">–</div></div>
+    </div>
+    <div class="preview-content" id="pvMessage">No message added.</div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('previewModal')">Close</button>
+      <a id="pvEditLink" href="wishform.html" class="btn-save" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">✏️ Edit in Full Form</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Load api.js FIRST then all logic ── -->
+<script src="../js/api.js"></script>
+<script>
+
+// ── Dark mode ──────────────────────────────────────────────
+let dark = localStorage.getItem('wd_dark') !== '0';
+function applyDark() {
+  document.body.classList.toggle('dark', dark);
+  document.getElementById('modeBtn').textContent = dark ? '🌙' : '☀️';
+}
+function toggleDark() {
+  dark = !dark;
+  localStorage.setItem('wd_dark', dark ? '1' : '0');
+  applyDark();
+}
+applyDark();
+
+// ── Data ───────────────────────────────────────────────────
+let wishes = [];
+let deletingId = null;
+
+// ── Calendar ───────────────────────────────────────────────
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS   = ['S','M','T','W','T','F','S'];
+let calDate  = new Date();
+
+function calNav(d) {
+  calDate = new Date(calDate.getFullYear(), calDate.getMonth() + d, 1);
+  renderCal();
+}
+function renderCal() {
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  document.getElementById('calMonthTitle').textContent = MONTHS[m] + ' ' + y;
+  const first = new Date(y, m, 1).getDay();
+  const days  = new Date(y, m + 1, 0).getDate();
+  const today = new Date();
+  const eventDates = new Set(wishes.map(w => w.eventDate));
+  let html = DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+  for (let i = 0; i < first; i++) html += `<div class="cal-day empty"></div>`;
+  for (let d = 1; d <= days; d++) {
+    const isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    html += `<div class="cal-day${isToday?' today':''}${eventDates.has(ds)?' has-event':''}">${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+// ── Helpers ────────────────────────────────────────────────
+function statusClass(s) {
+  return s==='Sent'?'badge-sent': s==='Pending'?'badge-pending': s==='Failed'?'badge-draft':'badge-draft';
+}
+function initials(name) {
+  return (name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function formatDate(ds) {
+  if (!ds) return '–';
+  const d = new Date(ds);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function daysUntil(ds) {
+  if (!ds) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const t = new Date(ds);
+  const thisYear = new Date(today.getFullYear(), t.getMonth(), t.getDate());
+  if (thisYear < today) thisYear.setFullYear(today.getFullYear()+1);
+  return Math.round((thisYear - today)/86400000);
+}
+
+// ── Render table ───────────────────────────────────────────
+function renderTable() {
+  const q  = document.getElementById('searchInput').value.trim().toLowerCase();
+  const fs = document.getElementById('filterStatus').value;
+  const filtered = wishes.filter(w => {
+    return (w.name||'').toLowerCase().includes(q) && (!fs || w.status===fs);
+  });
+
+  document.getElementById('actCount').textContent = wishes.length;
+  document.getElementById('loadingState').style.display = 'none';
+
+  if (filtered.length === 0) {
+    document.getElementById('tableWrap').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+  } else {
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('tableWrap').style.display = '';
+    document.getElementById('tableBody').innerHTML = filtered.map(w => `
+      <tr>
+        <td>
+          <div class="recipient-cell">
+            <div class="rec-avatar">${initials(w.name)}</div>
+            <div>
+              <div class="rec-name">${w.name}</div>
+              <div class="rec-relation">${w.greeting||''}</div>
+            </div>
+          </div>
+        </td>
+        <td>${formatDate(w.eventDate)}<br>
+          <small style="color:var(--accent)">${w.scheduleTime||''}</small>
+        </td>
+        <td><span class="status-badge ${statusClass(w.status)}">${w.status}</span></td>
+        <td style="text-transform:capitalize">${w.delivery||'email'}</td>
+        <td>${formatDate(w.createDate)}</td>
+        <td>
+          <div class="action-icons">
+            <button class="action-btn" title="Preview" onclick="previewWish('${w.id}')">👁</button>
+            <button class="action-btn del" title="Delete" onclick="openDeleteModal('${w.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+  renderUpcoming();
+  renderCal();
+}
+
+function renderUpcoming() {
+  const ul = document.getElementById('upcomingList');
+  const upcoming = wishes
+    .filter(w => w.status === 'Pending' && w.eventDate)
+    .map(w => ({...w, days: daysUntil(w.eventDate)}))
+    .filter(w => w.days !== null && w.days <= 60)
+    .sort((a,b) => a.days - b.days)
+    .slice(0, 5);
+
+  if (!upcoming.length) {
+    ul.innerHTML = '<div style="color:var(--muted);font-size:0.85rem">No upcoming events in the next 60 days.</div>';
+    return;
+  }
+  ul.innerHTML = upcoming.map(w => {
+    const d = new Date(w.eventDate);
+    return `<div class="upcoming-item">
+      <div class="up-date">${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}</div>
+      <div class="up-info">
+        <div class="up-name">${w.name}</div>
+        <div class="up-event">${w.greeting||'Wish'} · via ${w.delivery||'email'}</div>
+      </div>
+      <div class="up-days">${w.days===0?'Today!':w.days+'d'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Modals ─────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target===ov) ov.classList.remove('open'); });
+});
+
+function previewWish(id) {
+  const w = wishes.find(x => x.id === id);
+  if (!w) return;
+  document.getElementById('pvName').textContent     = w.name;
+  document.getElementById('pvEvent').textContent    = w.greeting || 'Birthday Wish';
+  document.getElementById('pvDate').textContent     = formatDate(w.eventDate) + (w.scheduleTime ? ' at ' + w.scheduleTime : '');
+  document.getElementById('pvDelivery').textContent = w.delivery || 'email';
+  document.getElementById('pvMessage').textContent  = w.message || 'No message.';
+  document.getElementById('previewModal').classList.add('open');
+}
+
+function openDeleteModal(id) {
+  deletingId = id;
+  const w = wishes.find(x => x.id === id);
+  document.getElementById('deleteTargetName').textContent = w ? w.name : '';
+  document.getElementById('deleteModal').classList.add('open');
+}
+async function confirmDelete() {
+  try {
+    await WishesAPI.delete(deletingId);
+    closeModal('deleteModal');
+    showToast('Wish deleted.', 'info');
+    await initDashboard();
+  } catch (err) {
+    showToast('Delete failed: ' + err.message, 'error');
+  }
+}
+
+function openLogout() { document.getElementById('logoutModal').classList.add('open'); }
+function doLogout() {
+  Auth.clearSession();
+  closeModal('logoutModal');
+  showToast('Logged out 👋', 'info');
+  setTimeout(() => window.location.href = 'index.html', 800);
+}
+
+// ── Toast ──────────────────────────────────────────────────
+function showToast(msg, type='info') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icon = type==='success'?'✅':type==='error'?'❌':'ℹ️';
+  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(40px)'; t.style.transition='0.3s'; setTimeout(()=>t.remove(),350); }, 3000);
+}
+
+// ── MAIN INIT ──────────────────────────────────────────────
+async function initDashboard() {
+  // Redirect if not logged in
+  if (!Auth.isLoggedIn()) {
+    window.location.href = 'signin.html';
+    return;
+  }
+
+  // Show user info immediately from localStorage
+  const user = Auth.getUser();
+  if (user) {
+    document.getElementById('profileName').textContent  = 'Hello, ' + user.name + '!';
+    document.getElementById('profileEmail').textContent = user.email;
+    // Show initial letter in avatar
+    document.querySelector('.avatar').textContent = user.name.charAt(0).toUpperCase();
+  }
+
+  // Show loading
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('tableWrap').style.display    = 'none';
+  document.getElementById('emptyState').style.display   = 'none';
+
+  try {
+    const data = await WishesAPI.getAll();
+
+    // Map API response to local format
+    wishes = (data.wishes || []).map(w => ({
+      id:           w._id,
+      name:         w.receiverName,
+      greeting:     w.greeting,
+      message:      w.message,
+      eventDate:    w.scheduleDate ? w.scheduleDate.split('T')[0] : '',
+      scheduleTime: w.scheduleTime || '',
+      status:       w.status,
+      delivery:     w.deliveryMethod,
+      createDate:   w.createdAt ? w.createdAt.split('T')[0] : '',
+      repeat:       w.repeat,
+    }));
+
+    // Update stats from API
+    document.getElementById('statTotal').textContent   = data.total || wishes.length;
+    document.getElementById('statSent').textContent    = data.stats ? data.stats.Sent    || 0 : wishes.filter(w=>w.status==='Sent').length;
+    document.getElementById('statPending').textContent = data.stats ? data.stats.Pending || 0 : wishes.filter(w=>w.status==='Pending').length;
+    document.getElementById('statDraft').textContent   = data.stats ? data.stats.Draft   || 0 : wishes.filter(w=>w.status==='Draft').length;
+
+    renderTable();
+
+  } catch (err) {
+    document.getElementById('loadingState').style.display = 'none';
+    if (err.message.includes('server') || err.message.includes('reach')) {
+      showToast('⚠️ Cannot reach server. Is backend running?', 'error');
+      renderCal();
+    } else if (err.message.includes('token') || err.message.includes('Invalid') || err.message.includes('expired')) {
+      Auth.clearSession();
+      window.location.href = 'signin.html';
+    } else {
+      showToast('Failed to load wishes: ' + err.message, 'error');
+      renderCal();
+    }
+  }
+}
+
+// Start
+initDashboard();
+
+</script>
+</body>
+</html>
