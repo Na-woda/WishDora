@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — WishDora Admin</title>
+<link rel="stylesheet" href="./theme.css" />
+<link rel="stylesheet" href="./admin.css" />
+</head>
+<body>
+
+<div class="admin-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">Wish<span>Dora</span></div>
+
+    <button class="nav-item active" data-section="overview">Overview</button>
+    <button class="nav-item" data-section="cards">Greeting Cards</button>
+    <button class="nav-item" data-section="categories">Categories</button>
+    <button class="nav-item" data-section="users">Users</button>
+    <button class="nav-item" data-section="wishes">Scheduled Wishes</button>
+
+    <div class="sidebar-footer">
+      <button class="nav-item" id="logoutBtn">Log Out</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ===== Overview ===== -->
+    <section class="admin-section" id="section-overview">
+      <div class="main-header"><h1>Overview</h1></div>
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="glass stat-card"><div class="label">Total Users</div><div class="value" id="statUsers">—</div></div>
+        <div class="glass stat-card"><div class="label">Total Cards</div><div class="value" id="statCards">—</div></div>
+        <div class="glass stat-card"><div class="label">Premium Cards</div><div class="value" id="statPremium">—</div></div>
+        <div class="glass stat-card"><div class="label">Free Cards</div><div class="value" id="statFree">—</div></div>
+        <div class="glass stat-card"><div class="label">Scheduled Wishes</div><div class="value" id="statWishes">—</div></div>
+      </div>
+
+      <div class="glass panel">
+        <div class="panel-header"><h2>Latest Uploads</h2></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>Title</th><th>Category</th><th>Type</th><th>Uploaded</th></tr></thead>
+            <tbody id="latestUploadsBody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Greeting Cards ===== -->
+    <section class="admin-section" id="section-cards" hidden>
+      <div class="main-header">
+        <h1>Greeting Cards</h1>
+        <button class="btn btn-primary" id="addCardBtn">+ Upload Card</button>
+      </div>
+
+      <div class="glass panel">
+        <div class="panel-header toolbar">
+          <input type="text" id="cardSearch" placeholder="Search by title…" />
+          <select id="cardCategoryFilter"><option value="">All categories</option></select>
+          <select id="cardPremiumFilter">
+            <option value="">All cards</option>
+            <option value="true">Premium only</option>
+            <option value="false">Free only</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>Title</th><th>Category</th><th>Type</th><th>Uploaded</th><th>Actions</th></tr></thead>
+            <tbody id="cardsBody"><tr><td colspan="6" class="empty-state">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="cardsPagination"></div>
+      </div>
+    </section>
+
+    <!-- ===== Categories ===== -->
+    <section class="admin-section" id="section-categories" hidden>
+      <div class="main-header">
+        <h1>Categories</h1>
+        <button class="btn btn-primary" id="addCategoryBtn">+ New Category</button>
+      </div>
+      <div class="glass panel">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Slug</th><th>Actions</th></tr></thead>
+            <tbody id="categoriesBody"><tr><td colspan="3" class="empty-state">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Users ===== -->
+    <section class="admin-section" id="section-users" hidden>
+      <div class="main-header"><h1>Registered Users</h1></div>
+      <div class="glass panel">
+        <div class="panel-header toolbar">
+          <input type="text" id="userSearch" placeholder="Search by name or email…" />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Joined</th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="4" class="empty-state">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="usersPagination"></div>
+      </div>
+    </section>
+
+    <!-- ===== Scheduled Wishes ===== -->
+    <section class="admin-section" id="section-wishes" hidden>
+      <div class="main-header"><h1>Scheduled Wishes</h1></div>
+      <div class="glass panel">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Sender</th><th>Receiver</th><th>Card</th><th>Schedule Date</th><th>Status</th></tr></thead>
+            <tbody id="wishesBody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="wishesPagination"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== Card Modal (create/edit) ===== -->
+<div class="modal-backdrop" id="cardModalBackdrop" hidden>
+  <form class="glass modal" id="cardForm" novalidate>
+    <h3 id="cardModalTitle">Upload Greeting Card</h3>
+    <div class="form-grid">
+      <input type="hidden" id="cardId" />
+      <div>
+        <label class="label" for="cardTitle">Title</label>
+        <input type="text" id="cardTitle" required />
+      </div>
+      <div>
+        <label class="label" for="cardCategory">Category</label>
+        <select id="cardCategory" required></select>
+      </div>
+      <div>
+        <label class="label" for="cardImage">Image (JPG, PNG, WEBP — max 5MB)</label>
+        <input type="file" id="cardImage" accept=".jpg,.jpeg,.png,.webp" />
+        <div class="image-preview" id="cardImagePreview" style="margin-top:0.6em;">No image selected</div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="cardIsPremium" />
+        <label for="cardIsPremium">Mark as Premium card</label>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" id="cardModalCancel">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="cardModalSubmit">Save Card</button>
+    </div>
+  </form>
+</div>
+
+<!-- ===== Category Modal (create/edit) ===== -->
+<!--<div class="modal-backdrop" id="categoryModalBackdrop" hidden>
+  <form class="glass modal" id="categoryForm" novalidate>
+    <h3 id="categoryModalTitle">New Category</h3>
+    <div class="form-grid">
+      <input type="hidden" id="categoryId" />
+      <div>
+        <label class="label" for="categoryName">Name</label>
+        <input type="text" id="categoryName" required />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" id="categoryModalCancel">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save Category</button>
+    </div>
+  </form>
+</div> -->
+
+<!-- ===== Category Modal (create/edit) ===== -->
+<div class="modal-backdrop" id="categoryModalBackdrop" hidden>
+  <form class="glass modal" id="categoryForm" novalidate>
+    <h3 id="categoryModalTitle">New Category</h3>
+    <div class="form-grid">
+      <input type="hidden" id="categoryId" />
+      <div>
+        <label class="label" for="categoryName">Name</label>
+        <input type="text" id="categoryName" required />
+      </div>
+      <div>
+        <label class="label" for="categoryDescription">Short description</label>
+        <input type="text" id="categoryDescription" maxlength="140" placeholder="e.g. Celebrate birthdays beautifully" />
+      </div>
+      <div>
+        <label class="label" for="categoryImage">Category image</label>
+        <input type="file" id="categoryImage" accept="image/jpeg,image/png,image/webp" />
+        <div class="image-preview" id="categoryImagePreview">No image selected</div>
+        <label class="label" for="removeCategoryImage">
+          <input type="checkbox" id="removeCategoryImage" /> Remove current image
+        </label>
+        <input type="text" id="categoryIcon" maxlength="8" placeholder="🎂" />
+      </div>
+      <div>
+        <label class="label" for="categoryColor">Accent gradient (CSS)</label>
+        <input type="text" id="categoryColor" placeholder="linear-gradient(135deg,#e8782a,#c25c0c)" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" id="categoryModalCancel">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save Category</button>
+    </div>
+  </form>
+</div>
+
+<script src="../js/admin/config.js"></script>
+<script src="../js/admin/auth.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/admin/cards.js"></script>
+<script src="../js/admin/categories.js"></script>
+<script src="../js/admin/users.js"></script>
+<script src="../js/admin/wishes.js"></script>
+<script src="../js/admin/dashboard.js"></script>
+</body>
+</html>
