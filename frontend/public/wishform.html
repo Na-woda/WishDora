@@ -41,6 +41,27 @@
 .login-notice{background:var(--accent-s);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:14px 18px;text-align:center;font-size:.88rem;color:var(--text2);margin-bottom:20px;}
 .login-notice a{color:var(--accent);font-weight:600;text-decoration:none;}
 .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;}
+.toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast {
+  background: rgba(255, 134, 59, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(101, 86, 84, 0.4);
+  border-radius: 14px;
+  padding: 13px 18px;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.12);
+  font-size: 0.86rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 240px;
+  max-width: 320px;
+  animation: toastSlide 0.4s cubic-bezier(.22,1,.36,1);
+  font-weight: 500;
+}
+.toast.ok  { border-left: 4px solid #10b981; }
+.toast.err { border-left: 4px solid #ef4444; }
+.toast.inf { border-left: 4px solid #f97316; }
+@keyframes toastSlide { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 /* Modern Category Explorer & Card Modal Design System */
 .categories-header-wrap {
   display: flex;
@@ -573,14 +594,15 @@ body.light-mode .cat-modal {
   <div class="form-group full">
     <label>Send Via</label>
     <div class="delivery-options" id="deliveryOpts">
-      <label class="delivery-opt active" data-val="email"><input type="radio" name="delivery" value="email" checked> 📧 Email</label>
-      <label class="delivery-opt" data-val="whatsapp"><input type="radio" name="delivery" value="whatsapp"> 💬 WhatsApp</label>
-      <label class="delivery-opt" data-val="both"><input type="radio" name="delivery" value="both"> 📨 Both</label>
+      <label class="delivery-opt" data-val="email"><input type="radio" name="delivery" value="email"> 📧 Email</label>
+      <label class="delivery-opt" data-val="whatsapp" data-disabled="true" onclick="showWhatsAppComingSoon(event)"><input type="radio" name="delivery" value="whatsapp"> 💬 WhatsApp</label>
+      <!-- old onclick handler: onclick="toast('Google sign-in coming soon!','inf')" -->
+      <label class="delivery-opt" data-val="both"data-disabled="true" onclick="showWhatsAppComingSoon(event)"><input type="radio" name="delivery" value="both"> 📨 Both</label>
     </div>
   </div>
 
   <div class="full">
-    <button class="btn-schedule" id="scheduleBtn" onclick="scheduleWish()">
+    <button class="btn-schedule" id="scheduleBtn" onclick="scheduleWish()" disabled>
       🎁 Save & Schedule Wish
     </button>
   </div>
@@ -696,6 +718,7 @@ body.light-mode .cat-modal {
   </div>
   <p class="footer-copy">© 2026 WishDora. All Rights Reserved.</p>
 </footer>
+<div class="toast-wrap" id="toastWrap"></div>
 <!-- FOOTER 
 <footer class="site-footer">
   <div class="footer-grid">
@@ -731,15 +754,45 @@ if (user) {
 document.getElementById('scheduleDate').min = new Date().toISOString().split('T')[0];
 
 // Delivery options selection
-let deliveryVal = 'email';
+let deliveryVal = '';
+function updateScheduleButtonState() {
+  const btn = document.getElementById('scheduleBtn');
+  if (btn) btn.disabled = !deliveryVal;
+}
+function toast(msg, type='inf') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  const icons = { ok:'✅', err:'❌', inf:'💬' };
+  el.innerHTML = `<span>${icons[type]||'💬'}</span>
+  <span class="toast-message"><span>${msg}</span>`;
+  wrap.appendChild(el);
+  setTimeout(() => {
+    /*el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='all 0.35s cubic-bezier(.4,0,.2,1)';*/
+    el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='all 0.35s cubic-bezier(.4,0,.2,1)';
+    setTimeout(()=>el.remove(),400);
+  }, 3500);
+}
+function showWhatsAppComingSoon(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  toast('WhatsApp delivery is coming soon! 💬', 'inf');
+}
 document.getElementById('deliveryOpts').addEventListener('click', e => {
   const opt = e.target.closest('.delivery-opt');
   if (!opt) return;
+  if (opt.dataset.disabled === 'true') {
+    e.preventDefault();
+    toast('WhatsApp delivery is coming soon! 💬', 'inf');
+    return;
+  }
   document.querySelectorAll('.delivery-opt').forEach(o => o.classList.remove('active'));
   opt.classList.add('active');
   deliveryVal = opt.dataset.val;
   updatePreview();
+  updateScheduleButtonState();
 });
+updateScheduleButtonState();
 
 // Preview updater
 function updatePreview() {
@@ -1121,6 +1174,7 @@ async function scheduleWish() {
   const repeat = document.getElementById('repeat').value;
 
   // Validation
+  if (!deliveryVal) { showToast('Select a delivery option before scheduling', 'error'); return; }
   if (!receiverName) { showToast('Enter receiver name', 'error'); return; }
   if (!message) { showToast('Write a message', 'error'); return; }
   if (!dateVal) { showToast('Select a date', 'error'); return; }

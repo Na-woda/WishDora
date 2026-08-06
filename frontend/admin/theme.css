@@ -1,0 +1,180 @@
+/* ==========================================================================
+   WishDora — shared design tokens
+   Dark orange glassmorphism, consistent with the rest of the product.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Palette */
+  --bg-void: #120a06;
+  --bg-deep: #1c110a;
+  --bg-panel: rgba(38, 22, 13, 0.55);
+  --bg-panel-solid: #24140c;
+  --border-glass: rgba(255, 158, 87, 0.16);
+  --border-glass-strong: rgba(255, 158, 87, 0.32);
+
+  --accent: #ff7a29;
+  --accent-bright: #ffa658;
+  --accent-dim: #c25a1c;
+  --accent-glow: rgba(255, 122, 41, 0.35);
+
+  --text-primary: #f7ece2;
+  --text-secondary: #cbb3a2;
+  --text-muted: #8c7263;
+
+  --success: #6fbf8b;
+  --danger: #e2665a;
+  --warning: #e8b959;
+
+  /* Type */
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  /* Radius / shadow */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --shadow-glow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border-glass);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(ellipse at 20% -10%, rgba(255, 122, 41, 0.14), transparent 55%),
+    radial-gradient(ellipse at 90% 10%, rgba(255, 122, 41, 0.08), transparent 45%),
+    var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 0 0 0.4em;
+}
+
+a { color: var(--accent-bright); text-decoration: none; }
+
+.glass {
+  background: var(--bg-panel);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.7em 1.4em;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  color: #1a0d06;
+  box-shadow: 0 4px 18px var(--accent-glow);
+}
+.btn-primary:hover { box-shadow: 0 6px 24px var(--accent-glow); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-glass-strong);
+}
+.btn-ghost:hover { color: var(--text-primary); border-color: var(--accent); }
+
+.btn-danger {
+  background: rgba(226, 102, 90, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(226, 102, 90, 0.4);
+}
+.btn-danger:hover { background: rgba(226, 102, 90, 0.25); }
+
+input, select, textarea {
+  font-family: var(--font-body);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-glass-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 0.65em 0.9em;
+  font-size: 0.92rem;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+.label {
+  display: block;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.4em;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25em 0.7em;
+  border-radius: 999px;
+}
+.badge-premium {
+  background: linear-gradient(135deg, #ffcf7a, var(--accent));
+  color: #2a1608;
+}
+.badge-free {
+  background: rgba(111, 191, 139, 0.18);
+  color: var(--success);
+  border: 1px solid rgba(111, 191, 139, 0.35);
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 0.9em 1.3em;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 500;
+  z-index: 999;
+  box-shadow: var(--shadow-glow);
+  animation: toast-in 0.25s ease;
+}
+.toast-success { background: #1d2e22; color: var(--success); border: 1px solid rgba(111,191,139,0.4); }
+.toast-error { background: #2e1c1a; color: var(--danger); border: 1px solid rgba(226,102,90,0.4); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-glass-strong); border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
