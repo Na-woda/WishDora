@@ -6,6 +6,7 @@
 <title>WishDora</title>
 <link rel="stylesheet" href="css/mainStyle.css">
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+<link rel="stylesheet" href="../feedBack/feedback-widget.css" />
 <style>
 
   .section { padding: 5rem 1.5rem; }
@@ -569,23 +570,10 @@ Never Let a Special Day Feel Forgotten
   </div>
 </section>
 
-<!--<div class="hero-content">
-
-<h1>Make Every Wish Special</h1>
-
-<p data-aos="fade-down"data-aos-duration="2000"  class="description">
-Plan your wishes in advance and let your love reach them at the perfect moment. <br>
-Never miss a special day again.
-</p>
-
-
-
-</div>-->
-
 </section>
 <br>
 
-<p class="note"> <br><br>
+<p class="note" data-aos="fade-down"data-aos-duration="2000"  class="description"> <br><br>
 &nbsp;&nbsp;&nbsp;&nbsp; Add a wish once, and it will reach them on their special day every year.
 </p>
 
@@ -606,13 +594,13 @@ Never miss a special day again.
      data-aos-duration="1000">
   <div class="section-head">   
   <h2 class ="section-title">How It <span>Works</span></h2> 
-  <p class="subtitle">Schedule and send Birthday wishers in just a few easy steps</p><br>
+  <p class="subtitle">Schedule and send wishers in just a few easy steps</p><br>
   </div>
   <div class="steps">
     <!-- Step 1 -->
     <div class="step">
-      <h3>1. Add Birthday Details</h3>
-      <img src="E:\WishSite\Step1.jpg" alt="Add Birthday Details">
+      <h3>1. Add Special Details</h3>
+      <img src="E:\WishSite\Step1.jpg" alt="Add Special Details">
       <p>Enter the name, email, WhatsApp number, date, and your special message</p>
     </div>
 
@@ -758,7 +746,7 @@ Never miss a special day again.
 <!-- CTA BANNER -->
 <div class="cta-banner">
   <h2>Ready to Make Every Wish Unforgettable?</h2>
-  <p>Join WishDora today — free forever for the first 5 wishes.</p>
+  <p>Join WishDora today — free forever for the all wishes.</p>
   <a href="wishform.html" class="btn-white" style="color: rgb(26, 24, 24); text-decoration: none;">🎁 Make A Wish Now</a>
 </div>
 
@@ -793,7 +781,37 @@ Never miss a special day again.
 
 <div class="toast-wrap" id="toastWrap"></div>
 
+<div id="fb-backdrop" class="fb-backdrop" style="display:none;">
+  <div class="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title">
+    <button class="fb-close" aria-label="Close" id="fb-close">✕</button>
+    <h2 class="fb-title" id="fb-title">💜 Enjoying WishDora?</h2>
+    <p class="fb-subtitle">How was your experience?</p>
 
+    <div class="fb-stars" role="radiogroup" aria-label="Star rating" id="fb-stars"></div>
+
+    <div class="fb-radio-group">
+      <p>Would gift store recommendations be useful?</p>
+      <label><input type="radio" name="storeRec" value="Yes" /> Yes</label>
+      <label><input type="radio" name="storeRec" value="Maybe" /> Maybe</label>
+      <label><input type="radio" name="storeRec" value="No" /> No</label>
+    </div>
+
+    <div class="fb-suggestion-toggle" id="fb-toggle-suggestion">💡 Have a suggestion?</div>
+    <textarea class="fb-suggestion" id="fb-suggestion" placeholder="Your suggestion..." style="display:none;"></textarea>
+
+    <label class="fb-checkbox">
+      <input type="checkbox" id="fb-recommend" />
+      ☑ I would recommend WishDora to a friend
+    </label>
+
+    <div id="fb-msg" class="fb-msg" role="alert" aria-live="polite"></div>
+
+    <div class="fb-buttons">
+      <button class="fb-btn fb-btn-secondary" id="fb-later">Later</button>
+      <button class="fb-btn fb-btn-primary" id="fb-submit">Submit Feedback</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -820,8 +838,8 @@ function animCount(el, target, suffix='') {
 }
 const obs = new IntersectionObserver(entries => {
   if (entries[0].isIntersecting) {
-    animCount(document.getElementById('sWishes'), 12480);
-    animCount(document.getElementById('sUsers'), 4320);
+    animCount(document.getElementById('sWishes'), 582);
+    animCount(document.getElementById('sUsers'), 50);
     animCount(document.getElementById('sDays'), 365, '+');
     obs.disconnect();
   }
@@ -845,6 +863,7 @@ function toast(msg, type='inf') {
   });
 </script>
 <script src="../js/api.js"></script>
+<script src="../feedBack/feedback-widget.js" defer></script>
 <script>DarkMode.init();updateNavbar();</script>
 </body>
 </html>
