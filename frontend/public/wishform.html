@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/mainStyle.css">
+<link rel="stylesheet" href="../feedBack/feedback-widget.css">
 <title>Schedule a Wish – WishDora</title>
 <style>
 .page-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text);text-align:center;margin-bottom:8px;}
@@ -564,7 +565,7 @@ body.light-mode .cat-modal {
     <input id="scheduleDate" type="date" onchange="updatePreview()">
   </div>
   <div class="form-group">
-    <label>Receiver Email</label>
+    <label>Receiver Email <span id="receiverEmailLock" hidden>(locked while editing)</span></label>
     <input id="receiverEmail" type="email" placeholder="their@email.com" oninput="updatePreview()">
   </div>
   <div class="form-group">
@@ -572,7 +573,7 @@ body.light-mode .cat-modal {
     <input id="scheduleTime" type="time" value="09:00">
   </div>
   <div class="form-group">
-    <label>Receiver WhatsApp</label>
+    <label>Receiver WhatsApp <span id="receiverWhatsappLock" hidden>(locked while editing)</span></label>
     <input id="receiverWhatsapp" type="tel" placeholder="+94771234567">
   </div>
   <div class="form-group">
@@ -793,6 +794,68 @@ document.getElementById('deliveryOpts').addEventListener('click', e => {
   updateScheduleButtonState();
 });
 updateScheduleButtonState();
+
+// Load an existing wish when the dashboard opens this form with ?edit=<wish id>.
+const editingWishId = new URLSearchParams(window.location.search).get('edit');
+
+function setDeliveryOption(method) {
+  const option = document.querySelector(`.delivery-opt[data-val="${method}"]`);
+  if (!option) return;
+  document.querySelectorAll('.delivery-opt').forEach(o => o.classList.remove('active'));
+  option.classList.add('active');
+  option.querySelector('input').checked = true;
+  deliveryVal = method;
+  updateScheduleButtonState();
+}
+
+function showSelectedCard(imageUrl, id) {
+  if (!imageUrl) return;
+  selectedCard = { id: id || null, imageUrl, kind: 'uploaded' };
+  document.getElementById('prevCard').innerHTML =
+    `<img src="${imageUrl}" alt="Selected card" style="width:100%;height:100%;object-fit:cover;" />`;
+}
+
+async function loadWishForEditing() {
+  if (!editingWishId) return;
+  if (!Auth.isLoggedIn()) {
+    window.location.href = 'signin.html';
+    return;
+  }
+
+  try {
+    const data = await WishesAPI.getOne(editingWishId);
+    const wish = data.wish;
+    if (!wish) throw new Error('Wish not found');
+    if (wish.status !== 'Pending' && wish.status !== 'Draft') {
+      throw new Error('Only pending or draft wishes can be edited');
+    }
+
+    document.querySelector('.page-title').textContent = 'Edit Scheduled Wish ✏️';
+    document.querySelector('.page-sub').textContent = 'Update your wish details. Receiver email and WhatsApp number are locked.';
+    document.getElementById('scheduleBtn').innerHTML = '💾 Save Updates';
+    document.getElementById('senderName').value = wish.senderName || user?.name || '';
+    document.getElementById('greeting').value = wish.greeting || 'Happy Birthday';
+    document.getElementById('receiverName').value = wish.receiverName || '';
+    document.getElementById('receiverEmail').value = wish.receiverEmail || '';
+    document.getElementById('receiverWhatsapp').value = wish.receiverWhatsapp || '';
+    document.getElementById('message').value = wish.message || '';
+    document.getElementById('scheduleDate').value = wish.scheduleDate ? wish.scheduleDate.slice(0, 10) : '';
+    document.getElementById('scheduleTime').value = wish.scheduleTime || '09:00';
+    document.getElementById('repeat').value = wish.repeat || 'none';
+    document.getElementById('receiverEmail').readOnly = true;
+    document.getElementById('receiverWhatsapp').readOnly = true;
+    document.getElementById('receiverEmailLock').hidden = false;
+    document.getElementById('receiverWhatsappLock').hidden = false;
+    setDeliveryOption(wish.deliveryMethod || 'email');
+    showSelectedCard(wish.cardImage, wish.selectedCardId);
+    updatePreview();
+  } catch (err) {
+    showToast(err.message || 'Could not load this wish for editing', 'error');
+    setTimeout(() => window.location.href = 'dashboard.html', 1400);
+  }
+}
+
+loadWishForEditing();
 
 // Preview updater
 function updatePreview() {
@@ -1189,11 +1252,9 @@ async function scheduleWish() {
   btn.innerHTML = '<div class="spinner"></div> Scheduling…';
 
   try {
-    const data = await WishesAPI.create({
+    const payload = {
       senderName: senderName || user?.name || 'WishDora User',
       receiverName,
-      receiverEmail,
-      receiverWhatsapp,
       greeting,
       message,
       selectedCardId: selectedCard?.id || null,
@@ -1202,14 +1263,24 @@ async function scheduleWish() {
       scheduleTime: timeVal,
       repeat,
       deliveryMethod: deliveryVal,
-    });
+    };
 
-    showToast('🎉 ' + data.message, 'success');
-    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    // Contact details are intentionally excluded from updates.
+    if (!editingWishId) {
+      payload.receiverEmail = receiverEmail;
+      payload.receiverWhatsapp = receiverWhatsapp;
+    }
+    const data = editingWishId
+      ? await WishesAPI.update(editingWishId, payload)
+      : await WishesAPI.create(payload);
+
+    showToast(editingWishId ? 'Wish updated successfully.' : '🎉 ' + data.message, 'success');
+    if (!editingWishId) localStorage.setItem('wishdoraFeedbackAfterWish', '1');
+    setTimeout(() => window.location.href = editingWishId ? 'dashboard.html' : 'dashboard.html?showFeedback=1', 1500);
   } catch (err) {
     showToast('❌ ' + (err.message || 'Failed to schedule wish'), 'error');
     btn.disabled = false;
-    btn.innerHTML = '🎁 Save & Schedule Wish';
+    btn.innerHTML = editingWishId ? '💾 Save Updates' : '🎁 Save & Schedule Wish';
   }
 }
 </script>

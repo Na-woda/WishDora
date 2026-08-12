@@ -58,13 +58,38 @@ app.use('/api/categories', publicCategoryRoutes);
 app.use('/api/admin/categories', adminCategoryRoutes);
 app.use('/api/admin', userRoutes);
 
-// Serve frontend static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/public')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+// Serve frontend static files for the public site
+const frontendRoot = path.join(__dirname, '../frontend');
+app.use(express.static(frontendRoot));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(frontendRoot, 'public/index.html'));
+});
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(frontendRoot, 'public/index.html'));
+});
+
+app.post('/api/feedback', (req, res) => {
+  const { rating, suggestion = '', storeRecommendation, recommendFriend, userName, userEmail, userId } = req.body || {};
+
+  if (!rating) {
+    return res.status(400).json({ success: false, message: 'Please select a rating.' });
+  }
+
+  console.log('💬 New feedback received:', {
+    rating,
+    storeRecommendation,
+    recommendFriend,
+    suggestion: suggestion.trim(),
+    userName,
+    userEmail,
+    userId,
   });
-}
+
+  return res.status(201).json({
+    success: true,
+    message: 'Thank you for your feedback!',
+  });
+});
 
 // Health check
 app.get('/api/health', (req, res) => {

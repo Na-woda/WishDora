@@ -6,6 +6,7 @@
   <title>User Dashboard – WishDora</title>
   <link rel="stylesheet" href="css/mainStyle.css">
   <link rel="stylesheet" href="css/userdashboard.css">
+  <link rel="stylesheet" href="../feedBack/feedback-widget.css">
 </head>
 <body>
 
@@ -191,6 +192,32 @@
   </div>
 </div>
 
+  <div id="fb-backdrop" class="fb-backdrop" style="display:none;">
+    <div class="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title">
+      <button class="fb-close" aria-label="Close" id="fb-close">✕</button>
+      <h2 class="fb-title" id="fb-title">💜 Enjoying WishDora?</h2>
+      <p class="fb-subtitle">How was your experience?</p>
+      <div class="fb-stars" role="radiogroup" aria-label="Star rating" id="fb-stars"></div>
+      <div class="fb-radio-group">
+        <p>Would gift store recommendations be useful?</p>
+        <label><input type="radio" name="storeRec" value="Yes" /> Yes</label>
+        <label><input type="radio" name="storeRec" value="Maybe" /> Maybe</label>
+        <label><input type="radio" name="storeRec" value="No" /> No</label>
+      </div>
+      <div class="fb-suggestion-toggle" id="fb-toggle-suggestion">💡 Have a suggestion?</div>
+      <textarea class="fb-suggestion" id="fb-suggestion" placeholder="Your suggestion..." style="display:none;"></textarea>
+      <label class="fb-checkbox">
+        <input type="checkbox" id="fb-recommend" />
+        ☑ I would recommend WishDora to a friend
+      </label>
+      <div id="fb-msg" class="fb-msg" role="alert" aria-live="polite"></div>
+      <div class="fb-buttons">
+        <button class="fb-btn fb-btn-secondary" id="fb-later">Later</button>
+        <button class="fb-btn fb-btn-primary" id="fb-submit">Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+
 <!-- PREVIEW MODAL -->
 <div class="modal-overlay" id="previewModal">
   <div class="modal">
@@ -367,6 +394,9 @@ function previewWish(id) {
   document.getElementById('pvDate').textContent     = formatDate(w.eventDate) + (w.scheduleTime ? ' at ' + w.scheduleTime : '');
   document.getElementById('pvDelivery').textContent = w.delivery || 'email';
   document.getElementById('pvMessage').textContent  = w.message || 'No message.';
+  const editLink = document.getElementById('pvEditLink');
+  editLink.href = `wishform.html?edit=${encodeURIComponent(w.id)}`;
+  editLink.style.display = (w.status === 'Pending' || w.status === 'Draft') ? 'inline-flex' : 'none';
   document.getElementById('previewModal').classList.add('open');
 }
 
@@ -436,6 +466,11 @@ async function initDashboard() {
       name:         w.receiverName,
       greeting:     w.greeting,
       message:      w.message,
+      senderName:   w.senderName,
+      receiverEmail: w.receiverEmail,
+      receiverWhatsapp: w.receiverWhatsapp,
+      selectedCardId: w.selectedCardId,
+      cardImage:    w.cardImage,
       eventDate:    w.scheduleDate ? w.scheduleDate.split('T')[0] : '',
       scheduleTime: w.scheduleTime || '',
       status:       w.status,
@@ -471,5 +506,11 @@ async function initDashboard() {
 initDashboard();
 
 </script>
+<script>
+  window.WD_FEEDBACK_AUTO_SHOW = true;
+  window.WD_FEEDBACK_DEBUG = false;
+  window.WD_FEEDBACK_SHOW_DELAY_MS = 1200;
+</script>
+<script src="../feedBack/feedback-widget.js?v=4" defer></script>
 </body>
 </html>

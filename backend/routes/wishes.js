@@ -63,6 +63,17 @@ router.get('/upcoming', async (req, res) => {
   }
 });
 
+// Get one wish belonging to the logged-in user.
+router.get('/:id', async (req, res) => {
+  try {
+    const wish = await Wish.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!wish) return res.status(404).json({ success: false, message: 'Wish not found' });
+    res.json({ success: true, wish });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ── POST /api/wishes ───────────────────────────────────────
 // Create and schedule a wish
 router.post('/', [
@@ -150,7 +161,8 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cannot edit a sent wish' });
     }
 
-    const allowed = ['receiverName', 'receiverEmail', 'receiverWhatsapp', 'greeting',
+    // Receiver contact details are fixed after creation and may never be changed.
+    const allowed = ['senderName', 'receiverName', 'greeting',
       'message', 'selectedCardId', 'cardImage', 'scheduleDate', 'scheduleTime', 'repeat', 'deliveryMethod', 'status'];
 
     allowed.forEach(field => {

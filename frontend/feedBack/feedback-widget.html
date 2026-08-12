@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WishDora Feedback</title>
+  <link rel="stylesheet" href="/feedback-widget.css" />
+</head>
+<body>
+  <div id="fb-backdrop" class="fb-backdrop" style="display:none;">
+    <div class="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title">
+      <button class="fb-close" aria-label="Close" id="fb-close">✕</button>
+      <h2 class="fb-title" id="fb-title">💜 Enjoying WishDora?</h2>
+      <p class="fb-subtitle">How was your experience?</p>
+
+      <!-- Star rating -->
+      <div class="fb-stars" role="radiogroup" aria-label="Star rating" id="fb-stars"></div>
+
+      <!-- Gift store recommendation -->
+      <div class="fb-radio-group">
+        <p>Would gift store recommendations be useful?</p>
+        <label><input type="radio" name="storeRec" value="Yes" /> Yes</label>
+        <label><input type="radio" name="storeRec" value="Maybe" /> Maybe</label>
+        <label><input type="radio" name="storeRec" value="No" /> No</label>
+      </div>
+
+      <!-- Suggestion toggle -->
+      <div class="fb-suggestion-toggle" id="fb-toggle-suggestion">💡 Have a suggestion?</div>
+      <textarea class="fb-suggestion" id="fb-suggestion" placeholder="Your suggestion..." style="display:none;"></textarea>
+
+      <!-- Recommend friend -->
+      <label class="fb-checkbox">
+        <input type="checkbox" id="fb-recommend" />
+        ☑ I would recommend WishDora to a friend
+      </label>
+
+      <!-- Messages -->
+      <div id="fb-msg" class="fb-msg" role="alert" aria-live="polite"></div>
+
+      <!-- Buttons -->
+      <div class="fb-buttons">
+        <button class="fb-btn fb-btn-secondary" id="fb-later">Later</button>
+        <button class="fb-btn fb-btn-primary" id="fb-submit">Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/feedback-widget.js" defer></script>
+</body>
+</html>

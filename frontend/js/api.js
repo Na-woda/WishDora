@@ -64,6 +64,7 @@ const WishesAPI = {
     return apiFetch(`/wishes${q ? '?' + q : ''}`);
   },
   getUpcoming: () => apiFetch('/wishes/upcoming'),
+  getOne: (id) => apiFetch(`/wishes/${id}`),
   create: (data) => apiFetch('/wishes', { method: 'POST', body: data }),
   update: (id, data) => apiFetch(`/wishes/${id}`, { method: 'PUT', body: data }),
   delete: (id) => apiFetch(`/wishes/${id}`, { method: 'DELETE' }),

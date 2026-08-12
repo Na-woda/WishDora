@@ -385,8 +385,9 @@ async function handleLogin() {
   try {
     const data = await AuthAPI.login({ email, password });
     Auth.setSession(data.token, data.user);
+    localStorage.setItem('wishdoraFeedbackAfterLogin', '1');
     showToast('Welcome back, ' + data.user.name + '! 🎉', 'success');
-    setTimeout(() => window.location.href = 'dashboard.html', 800);
+    setTimeout(() => window.location.href = 'dashboard.html?showFeedback=1', 800);
   } catch (err) {
     showError(err.message || 'Invalid email or password');
     btn.disabled = false;

@@ -12,7 +12,8 @@ const connectDB = async () => {
     const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
 
     if (!mongoUri) {
-      throw new Error('Set MONGO_URI or MONGODB_URI in your .env file first');
+      console.warn('[MongoDB] No MONGO_URI or MONGODB_URI set. Continuing without database connection.');
+      return null;
     }
 
     const conn = await mongoose.connect(mongoUri, {
@@ -20,9 +21,11 @@ const connectDB = async () => {
       family: 4,
     });
     console.log(`[MongoDB] Connected: ${conn.connection.host}/${conn.connection.name}`);
+    return conn;
   } catch (err) {
     console.error(`[MongoDB] Connection error: ${err.message}`);
-    process.exit(1);
+    console.warn('[MongoDB] Continuing without database connection so the site can still serve feedback requests.');
+    return null;
   }
 };
 
