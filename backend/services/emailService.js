@@ -1,6 +1,12 @@
 // services/emailService.js
 const nodemailer = require('nodemailer');
 
+function escapeHtml(value = '') {
+  return String(value).replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  }[character]));
+}
+
 function normalizeCloudinaryImageUrl(imageUrl) {
   if (!imageUrl || typeof imageUrl !== 'string') return '';
   const trimmed = imageUrl.trim();
@@ -163,6 +169,40 @@ async function sendWishEmail(wish) {
   return info;
 }
 
+/** Send product feedback to the private recipient configured on the server. */
+async function sendFeedbackEmail(feedback) {
+  const recipient = process.env.FEEDBACK_RECIPIENT_EMAIL;
+  /*if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD || !recipient) {
+    throw new Error('Feedback email delivery is not configured.');
+  }*/
+
+  const submittedAt = new Date().toLocaleString('en-US', {
+    dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC',
+  }) + ' UTC';
+  const name = escapeHtml(feedback.userName || 'Guest');
+  const email = escapeHtml(feedback.userEmail || 'Not provided');
+  const suggestion = escapeHtml(feedback.suggestion || 'No written feedback provided.').replace(/\n/g, '<br>');
+  const rating = Number(feedback.rating);
+  const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+  return transporter.sendMail({
+    from: `"WishDora Feedback" <${process.env.GMAIL_USER}>`,
+    to: recipient,
+    replyTo: feedback.userEmail || undefined,
+    subject: `New WishDora feedback: ${rating}/5`,
+    text: `New WishDora feedback\n\nRating: ${rating}/5 (${stars})\nComment: ${feedback.suggestion || 'None'}\nStore recommendations: ${feedback.storeRecommendation}\nWould recommend: ${feedback.recommendFriend ? 'Yes' : 'No'}\nUser: ${feedback.userName || 'Guest'}\nEmail: ${feedback.userEmail || 'Not provided'}\nUser ID: ${feedback.userId || 'Not provided'}\nSubmitted: ${submittedAt}`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:600px;color:#1e120a">
+      <div style="padding:22px 26px;background:linear-gradient(135deg,#c25c0c,#e8782a);color:#fff;border-radius:14px 14px 0 0"><h1 style="margin:0;font-size:22px">New WishDora feedback</h1></div>
+      <div style="padding:24px 26px;background:#fdf8f3;border:1px solid #f0e4d4;border-top:0;border-radius:0 0 14px 14px">
+        <p style="font-size:22px;color:#c25c0c;margin:0 0 18px">${stars} <strong>${rating}/5</strong></p>
+        <p><strong>Comment</strong><br>${suggestion}</p>
+        <p><strong>Store recommendations:</strong> ${escapeHtml(feedback.storeRecommendation)}</p>
+        <p><strong>Would recommend:</strong> ${feedback.recommendFriend ? 'Yes' : 'No'}</p>
+        <hr style="border:0;border-top:1px solid #eadaca"><p><strong>User:</strong> ${name}<br><strong>Email:</strong> ${email}<br><strong>User ID:</strong> ${escapeHtml(feedback.userId || 'Not provided')}<br><strong>Submitted:</strong> ${submittedAt}</p>
+      </div></div>`,
+  });
+}
+
 /**
  * Send account welcome email
  */
@@ -271,5 +311,4 @@ async function sendOtpEmail(email, name, otp) {
   });
 }
 
-module.exports = { sendWishEmail, sendWelcomeEmail, sendOtpEmail };
-
+module.exports = { sendWishEmail, sendWelcomeEmail, sendOtpEmail, sendFeedbackEmail };

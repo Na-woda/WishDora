@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../feedBack/feedback-widget.css?v=2">
 <title>Create Account – WishDora</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -902,6 +903,7 @@ document.getElementById('signupForm').addEventListener('submit', async e => {
   try {
     const data = await AuthAPI.register({ name, email, password });
     Auth.setSession(data.token, data.user);
+    localStorage.setItem('wishdoraFeedbackAfterLogin', '1');
     document.getElementById('signupForm').style.display = 'none';
     document.getElementById('formHeader').style.display = 'none';
     document.getElementById('stepsBar').style.display = 'none';
@@ -927,5 +929,11 @@ function toast(msg, type='inf') {
   }, 3500);
 }
 </script>
+<script>
+  window.WD_FEEDBACK_AUTO_SHOW = true;
+  window.WD_FEEDBACK_SHOW_DELAY_MS = 120000;
+  window.WD_API_BASE = 'http://localhost:5000/api';
+</script>
+<script src="../feedBack/feedback-widget.js?v=12"></script>
 </body>
 </html>

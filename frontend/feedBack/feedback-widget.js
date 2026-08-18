@@ -167,36 +167,86 @@
       let rating = 0;
       let hoverRating = 0;
 
-      function renderStars() {
+      function renderStars(focusValue) {
         starsContainer.innerHTML = '';
         for (let i = 1; i <= 5; i++) {
-          const span = document.createElement('span');
+          const span = document.createElement('button');
+          span.type = 'button';
           span.className = 'fb-star';
           span.dataset.value = i;
           span.textContent = i <= (hoverRating || rating) ? '★' : '☆';
           span.classList.toggle('active', i <= rating);
           span.classList.toggle('inactive', i > rating);
-          span.tabIndex = 0;
+          span.tabIndex = rating ? (i === rating ? 0 : -1) : (i === 1 ? 0 : -1);
           span.setAttribute('role', 'radio');
-          span.setAttribute('aria-checked', i === rating);
-          span.addEventListener('mouseenter', () => { hoverRating = i; renderStars(); });
-          span.addEventListener('mouseleave', () => { hoverRating = 0; renderStars(); });
-          span.addEventListener('click', () => { rating = i; renderStars(); });
+          span.setAttribute('aria-label', `${i} out of 5 stars`);
+          span.setAttribute('aria-checked', i === rating ? 'true' : 'false');
           span.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
-              rating = i;
-              renderStars();
+              e.preventDefault();
+              setRating(i, true);
+              return;
+            }
+            const next = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? Math.min(5, i + 1)
+              : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? Math.max(1, i - 1) : null;
+            if (next) {
+              e.preventDefault();
+              setRating(next, true);
             }
           });
           starsContainer.appendChild(span);
         }
+        if (focusValue) starsContainer.querySelector(`[data-value="${focusValue}"]`)?.focus();
       }
+
+      function setRating(value, focusValue = false) {
+        rating = Number(value);
+        hoverRating = 0;
+        starsContainer.dataset.rating = String(rating);
+        starsContainer.querySelectorAll('.fb-star').forEach((star) => {
+          const starValue = Number(star.dataset.value);
+          star.textContent = starValue <= rating ? '\u2605' : '\u2606';
+          star.classList.toggle('active', starValue <= rating);
+          star.classList.toggle('inactive', starValue > rating);
+          star.tabIndex = starValue === rating ? 0 : -1;
+          star.setAttribute('aria-checked', starValue === rating ? 'true' : 'false');
+        });
+        if (focusValue) starsContainer.querySelector(`[data-value="${rating}"]`)?.focus();
+      }
+
+      // Keep selection on the stable container. Hovering redraws the individual
+      // stars, so a listener attached to a star itself can be removed before its
+      // click event fires (especially on touch devices).
+      starsContainer.addEventListener('pointerdown', (event) => {
+        const star = event.target.closest('.fb-star');
+        if (!star || !starsContainer.contains(star)) return;
+        setRating(star.dataset.value);
+      });
+      starsContainer.addEventListener('click', (event) => {
+        const star = event.target.closest('.fb-star');
+        if (star && starsContainer.contains(star)) setRating(star.dataset.value);
+      });
+      starsContainer.addEventListener('pointerover', (event) => {
+        const star = event.target.closest('.fb-star');
+        if (!star || !starsContainer.contains(star)) return;
+        const previewRating = Number(star.dataset.value);
+        starsContainer.querySelectorAll('.fb-star').forEach((item) => {
+          item.classList.toggle('preview', Number(item.dataset.value) <= previewRating);
+        });
+      });
+      starsContainer.addEventListener('pointerleave', () => {
+        starsContainer.querySelectorAll('.fb-star.preview').forEach((item) => item.classList.remove('preview'));
+      });
 
       function toggleSuggestion() {
         const visible = suggestionBox.style.display !== 'none';
         suggestionBox.style.display = visible ? 'none' : 'block';
         if (!visible) suggestionBox.focus();
       }
+
+      suggestionToggle.setAttribute('role', 'button');
+      suggestionToggle.tabIndex = 0;
+      suggestionToggle.setAttribute('aria-expanded', suggestionBox.style.display !== 'none' ? 'true' : 'false');
 
       function hideWidget() {
         backdrop.style.display = 'none';
@@ -229,8 +279,9 @@
       });
 
       async function submitFeedback() {
-        const storeRec = qs('input[name="storeRec"]:checked');
-        if (!rating) return showMessage('Please select a rating.', 'error');
+        const storeRec = widgetRoot.querySelector('input[name="storeRec"]:checked');
+        const selectedRating = Number(starsContainer.dataset.rating || rating);
+        if (!selectedRating) return showMessage('Please select a rating.', 'error');
         if (!storeRec) return showMessage('Please answer the store recommendation question.', 'error');
 
         const storedUser = JSON.parse(localStorage.getItem('wd_user') || 'null');
@@ -238,13 +289,16 @@
           userName: window.USER?.name || storedUser?.name || '',
           userEmail: window.USER?.email || storedUser?.email || '',
           userId: window.USER?.id || storedUser?.id || storedUser?._id || '',
-          rating,
+          rating: selectedRating,
           storeRecommendation: storeRec.value,
           suggestion: suggestionBox.value.trim(),
           recommendFriend: recommendCheckbox.checked,
         };
 
+        const originalLabel = submitBtn.textContent;
         submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+        submitBtn.textContent = 'Sending feedback…';
         try {
           const res = await fetch(`${getApiBase()}/feedback`, {
             method: 'POST',
@@ -259,12 +313,16 @@
           showMessage(e.message || 'Failed to submit feedback. Please try again later.', 'error');
         } finally {
           submitBtn.disabled = false;
+          submitBtn.removeAttribute('aria-busy');
+          submitBtn.textContent = originalLabel;
         }
       }
 
       function showMessage(text, type) {
         msgBox.textContent = text;
         msgBox.className = `fb-msg ${type}`;
+
+        
       }
 
       function shouldShow() {
@@ -316,7 +374,16 @@
         }
       }
 
-      suggestionToggle.addEventListener('click', toggleSuggestion);
+      suggestionToggle.addEventListener('click', () => {
+        toggleSuggestion();
+        suggestionToggle.setAttribute('aria-expanded', suggestionBox.style.display !== 'none' ? 'true' : 'false');
+      });
+      suggestionToggle.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          suggestionToggle.click();
+        }
+      });
       submitBtn.addEventListener('click', submitFeedback);
 
       const storageTrigger = hasPendingFeedbackEvent();

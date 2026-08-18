@@ -6,7 +6,7 @@
   <title>User Dashboard – WishDora</title>
   <link rel="stylesheet" href="css/mainStyle.css">
   <link rel="stylesheet" href="css/userdashboard.css">
-  <link rel="stylesheet" href="../feedBack/feedback-widget.css">
+  <link rel="stylesheet" href="../feedBack/feedback-widget.css?v=2">
 </head>
 <body>
 
@@ -510,7 +510,35 @@ initDashboard();
   window.WD_FEEDBACK_AUTO_SHOW = true;
   window.WD_FEEDBACK_DEBUG = false;
   window.WD_FEEDBACK_SHOW_DELAY_MS = 1200;
+  window.WD_API_BASE = 'http://localhost:5000/api';
 </script>
-<script src="../feedBack/feedback-widget.js?v=4" defer></script>
+<script src="../feedBack/feedback-widget.js?v=12"></script>
+<script>
+  // Inline fallback: if the feedback widget script didn't show the popup,
+  // force-show it when explicit triggers are present (login / wish schedule).
+  (function fallbackFeedbackShow() {
+    var hasLogin = localStorage.getItem('wishdoraFeedbackAfterLogin') === '1';
+    var hasWish  = localStorage.getItem('wishdoraFeedbackAfterWish') === '1';
+    var hasQuery = window.location.search.indexOf('showFeedback=1') !== -1;
+
+    if (!hasLogin && !hasWish && !hasQuery) return; // no trigger
+
+    setTimeout(function () {
+      var backdrop = document.getElementById('fb-backdrop');
+      if (!backdrop) return; // markup missing entirely
+      // If still hidden after the widget script should have shown it, force-show
+      if (backdrop.style.display === 'none' || window.getComputedStyle(backdrop).display === 'none') {
+        console.log('[Feedback Fallback] force-showing feedback popup');
+        backdrop.style.display = 'flex';
+        // Clean up triggers
+        localStorage.removeItem('wishdoraFeedbackAfterLogin');
+        localStorage.removeItem('wishdoraFeedbackAfterWish');
+        if (window.location.search.indexOf('showFeedback=1') !== -1) {
+          history.replaceState(null, '', window.location.href.split('?')[0] + window.location.hash);
+        }
+      }
+    }, 2500);
+  })();
+</script>
 </body>
 </html>

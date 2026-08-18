@@ -6,7 +6,7 @@
 <title>WishDora</title>
 <link rel="stylesheet" href="css/mainStyle.css">
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
-<link rel="stylesheet" href="../feedBack/feedback-widget.css" />
+<link rel="stylesheet" href="../feedBack/feedback-widget.css?v=2" />
 <style>
 
   .section { padding: 5rem 1.5rem; }
@@ -863,7 +863,13 @@ function toast(msg, type='inf') {
   });
 </script>
 <script src="../js/api.js"></script>
-<script src="../feedBack/feedback-widget.js" defer></script>
+<script>
+  // Guests see the feedback form after spending two minutes on the public site.
+  window.WD_FEEDBACK_AUTO_SHOW = true;
+  window.WD_FEEDBACK_SHOW_DELAY_MS = 120000;
+  window.WD_API_BASE = 'http://localhost:5000/api';
+</script>
+<script src="../feedBack/feedback-widget.js?v=12"></script>
 <script>DarkMode.init();updateNavbar();</script>
 </body>
 </html>

@@ -16,12 +16,17 @@ const { publicCardRoutes, adminCardRoutes } = require('./routes/cardRoutes');
 const { publicCategoryRoutes, adminCategoryRoutes } = require('./routes/categoryRoutes');
 const { adminLogin } = require('./controllers/authController');
 const schedulerRoutes = require('./routes/schedulerRoutes');
+const { sendFeedbackEmail } = require('./services/emailService');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
 // ── Security & Middleware ──────────────────────────────────
-app.use(helmet({ crossOriginEmbedderPolicy: false }));
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'same-site' },
+  contentSecurityPolicy: false, // disabled — the app uses inline scripts extensively
+}));
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -42,6 +47,11 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { success: false, message: 'Too many login attempts.' },
+});
+const feedbackLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Too many feedback submissions. Please try again later.' },
 });
 
 app.use('/api/', limiter);
@@ -68,11 +78,21 @@ app.get('/index.html', (req, res) => {
   res.sendFile(path.join(frontendRoot, 'public/index.html'));
 });
 
-app.post('/api/feedback', (req, res) => {
+app.post('/api/feedback', feedbackLimiter, async (req, res) => {
   const { rating, suggestion = '', storeRecommendation, recommendFriend, userName, userEmail, userId } = req.body || {};
 
-  if (!rating) {
+  const numericRating = Number(rating);
+  if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) {
     return res.status(400).json({ success: false, message: 'Please select a rating.' });
+  }
+  if (!['Yes', 'Maybe', 'No'].includes(storeRecommendation)) {
+    return res.status(400).json({ success: false, message: 'Please answer the store recommendation question.' });
+  }
+  if (typeof suggestion !== 'string' || suggestion.length > 2000) {
+    return res.status(400).json({ success: false, message: 'Feedback must be 2,000 characters or fewer.' });
+  }
+  if (userEmail && (typeof userEmail !== 'string' || !/^\S+@\S+\.\S+$/.test(userEmail))) {
+    return res.status(400).json({ success: false, message: 'The supplied email address is invalid.' });
   }
 
   console.log('💬 New feedback received:', {
@@ -85,10 +105,28 @@ app.post('/api/feedback', (req, res) => {
     userId,
   });
 
-  return res.status(201).json({
-    success: true,
-    message: 'Thank you for your feedback!',
-  });
+  const feedback = {
+    rating: numericRating,
+    storeRecommendation,
+    recommendFriend: Boolean(recommendFriend),
+    suggestion: suggestion.trim(),
+    userName: typeof userName === 'string' ? userName.trim().slice(0, 120) : '',
+    userEmail: typeof userEmail === 'string' ? userEmail.trim().slice(0, 254) : '',
+    userId: typeof userId === 'string' ? userId.slice(0, 120) : '',
+  };
+
+  try {
+    await sendFeedbackEmail(feedback);
+    console.log(`Feedback email sent: ${numericRating}/5`);
+    return res.status(201).json({ success: true, message: 'Thank you for your feedback!' });
+  } catch (error) {
+    console.error('Feedback email delivery failed:', error.message);
+    const unconfigured = error.message === 'Feedback email delivery is not configured.';
+    return res.status(unconfigured ? 503 : 502).json({
+      success: false,
+      message: unconfigured ? 'Feedback email delivery is not configured yet.' : 'Unable to deliver feedback. Please try again later.',
+    });
+  }
 });
 
 // Health check
