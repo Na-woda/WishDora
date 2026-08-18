@@ -39,7 +39,25 @@
       console.warn('[Feedback Widget] body not ready; cannot inject markup yet');
       return false;
     }
-    if (document.getElementById('fb-backdrop')) return true;
+
+    const requiredIds = [
+      'fb-backdrop', 'fb-close', 'fb-stars', 'fb-later', 'fb-submit',
+      'fb-toggle-suggestion', 'fb-suggestion', 'fb-msg', 'fb-recommend',
+    ];
+    const existingBackdrop = document.getElementById('fb-backdrop');
+    const hasCompleteMarkup = !!existingBackdrop &&
+      requiredIds.slice(1).every((id) => existingBackdrop.querySelector(`#${id}`));
+
+    if (hasCompleteMarkup) return existingBackdrop;
+
+    // A partial/old backdrop can remain in the page and previously prevented
+    // the widget from creating its controls. Remove it, then rebuild cleanly.
+    if (existingBackdrop) {
+      console.warn('[Feedback Widget] replacing incomplete feedback markup');
+      existingBackdrop.remove();
+    }
+    requiredIds.slice(1).forEach((id) => document.getElementById(id)?.remove());
+
     const html = `
       <div id="fb-backdrop" class="fb-backdrop" style="display:none;">
         <div class="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title">
@@ -57,7 +75,7 @@
           <textarea class="fb-suggestion" id="fb-suggestion" placeholder="Your suggestion..." style="display:none;"></textarea>
           <label class="fb-checkbox">
             <input type="checkbox" id="fb-recommend" />
-            ☑ I would recommend WishDora to a friend
+             I would recommend WishDora to a friend
           </label>
           <div id="fb-msg" class="fb-msg" role="alert" aria-live="polite"></div>
           <div class="fb-buttons">
@@ -67,9 +85,21 @@
         </div>
       </div>
     `;
-    document.body.insertAdjacentHTML('beforeend', html);
+    // Keep the new node as the source of truth.  Looking the controls up again
+    // from `document` is fragile on pages that are still replacing DOM content.
+    const template = document.createElement('template');
+    template.innerHTML = html.trim();
+    const injectedBackdrop = template.content.firstElementChild;
+    document.body.appendChild(injectedBackdrop);
+    const injectedSuccessfully = injectedBackdrop.id === 'fb-backdrop' &&
+      requiredIds.slice(1).every((id) => injectedBackdrop.querySelector(`#${id}`));
+    if (!injectedSuccessfully) {
+      console.error('[Feedback Widget] could not inject complete feedback markup');
+      injectedBackdrop.remove();
+      return false;
+    }
     console.log('[Feedback Widget] injected missing markup');
-    return true;
+    return injectedBackdrop;
   }
 
   function initFeedbackWidget() {
@@ -92,21 +122,24 @@
     createDebugBanner('[Feedback Widget] init started');
 
     try {
-      const injected = injectFeedbackMarkup();
-      if (!injected) {
+      const widgetRoot = injectFeedbackMarkup();
+      if (!widgetRoot) {
         console.warn('[Feedback Widget] skipped init because DOM body was not ready');
         return;
       }
 
-      const backdrop = $('#fb-backdrop');
-      const closeBtn = $('#fb-close');
-      const starsContainer = $('#fb-stars');
-      const laterBtn = $('#fb-later');
-      const submitBtn = $('#fb-submit');
-      const suggestionToggle = $('#fb-toggle-suggestion');
-      const suggestionBox = $('#fb-suggestion');
-      const msgBox = $('#fb-msg');
-      const recommendCheckbox = $('#fb-recommend');
+      // Scope every lookup to this widget. This avoids collisions with stale
+      // copies of the popup left behind by navigation or page-level scripts.
+      const widgetElement = (id) => widgetRoot.querySelector(`#${id}`);
+      const backdrop = widgetRoot;
+      const closeBtn = widgetElement('fb-close');
+      const starsContainer = widgetElement('fb-stars');
+      const laterBtn = widgetElement('fb-later');
+      const submitBtn = widgetElement('fb-submit');
+      const suggestionToggle = widgetElement('fb-toggle-suggestion');
+      const suggestionBox = widgetElement('fb-suggestion');
+      const msgBox = widgetElement('fb-msg');
+      const recommendCheckbox = widgetElement('fb-recommend');
 
       const foundStates = {
         backdrop: !!backdrop,
@@ -125,6 +158,9 @@
       if (!backdrop || !closeBtn || !starsContainer || !laterBtn || !submitBtn || !suggestionToggle || !suggestionBox || !msgBox || !recommendCheckbox) {
         console.warn('[Feedback Widget] required DOM elements missing after injection', foundStates);
         createDebugBanner('[Feedback Widget] init skipped: missing DOM elements');
+        // A page may be hydrating/replacing its body while this script loads.
+        // Retry instead of leaving the public show function as a no-op forever.
+        setTimeout(scheduleInit, 250);
         return;
       }
 
@@ -245,6 +281,9 @@
       function getApiBase() {
         const configured = window.WD_API_BASE || window.API_BASE_URL || window.API_BASE;
         if (configured) return configured.replace(/\/$/, '');
+        // api.js defines API_BASE as a global lexical constant, not a window property.
+        // Prefer it so a frontend served from another local origin still submits to the backend.
+        if (typeof API_BASE !== 'undefined') return API_BASE.replace(/\/$/, '');
         if (window.location.origin && window.location.origin !== 'null') {
           return `${window.location.origin}/api`;
         }
@@ -347,4 +386,3 @@
     scheduleInit();
   }
 })();
-
