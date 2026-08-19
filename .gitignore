@@ -1,6 +1,8 @@
 # Environment secrets
 .env
 backend/.env
+backend/.env.example
+
 
 # Dependencies and generated files
 node_modules/
