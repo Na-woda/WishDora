@@ -62,20 +62,20 @@
       <div id="fb-backdrop" class="fb-backdrop" style="display:none;">
         <div class="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title">
           <button class="fb-close" aria-label="Close" id="fb-close">✕</button>
-          <h2 class="fb-title" id="fb-title">💜 Enjoying WishDora?</h2>
+          <h2 class="fb-title" id="fb-title">🧡 Enjoying WishDora?</h2>
           <p class="fb-subtitle">How was your experience?</p>
           <div class="fb-stars" role="radiogroup" aria-label="Star rating" id="fb-stars"></div>
           <div class="fb-radio-group">
-            <p>Would gift store recommendations be useful?</p>
+            <p>Would you like us to help you contact online gift stores in the future?</p>
             <label><input type="radio" name="storeRec" value="Yes" /> Yes</label>
             <label><input type="radio" name="storeRec" value="Maybe" /> Maybe</label>
             <label><input type="radio" name="storeRec" value="No" /> No</label>
           </div>
-          <div class="fb-suggestion-toggle" id="fb-toggle-suggestion">💡 Have a suggestion?</div>
+          <div class="fb-suggestion-toggle" id="fb-toggle-suggestion">🖐️ Have a suggestion?</div>
           <textarea class="fb-suggestion" id="fb-suggestion" placeholder="Your suggestion..." style="display:none;"></textarea>
           <label class="fb-checkbox">
             <input type="checkbox" id="fb-recommend" />
-             I would recommend WishDora to a friend
+            I would recommend WishDora to a friend
           </label>
           <div id="fb-msg" class="fb-msg" role="alert" aria-live="polite"></div>
           <div class="fb-buttons">
@@ -307,7 +307,7 @@
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.message || 'Server error');
-          showMessage('💜 Thank you for your feedback! Your feedback has been received and will help us improve WishDora.', 'success');
+          showMessage('🤝 Thank you for your feedback! Your feedback has been received and will help us improve WishDora.', 'success');
           localStorage.setItem('wishdoraFeedbackSubmitted', Date.now().toString());
         } catch (e) {
           showMessage(e.message || 'Failed to submit feedback. Please try again later.', 'error');
