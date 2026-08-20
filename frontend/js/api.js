@@ -1,6 +1,6 @@
 // js/api.js — WishDora API client
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://wish-dora.vercel.app/api';
 
 // ── Token helpers ──────────────────────────────────────────
 const Auth = {
@@ -155,7 +155,7 @@ function updateNavbar() {
 
 async function adminFetch(path, options = {}) {
   const token = getAdminToken();
-  const baseUrl = (window.API_BASE_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+  const baseUrl = (window.API_BASE_URL || 'https://wish-dora.vercel.app/api').replace(/\/$/, '');
   const headers = { ...(options.headers || {}) };
 
   // Only set JSON content-type when we're not sending FormData (file uploads).
