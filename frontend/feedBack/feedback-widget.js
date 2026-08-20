@@ -342,10 +342,7 @@
         // api.js defines API_BASE as a global lexical constant, not a window property.
         // Prefer it so a frontend served from another local origin still submits to the backend.
         if (typeof API_BASE !== 'undefined') return API_BASE.replace(/\/$/, '');
-        if (window.location.origin && window.location.origin !== 'null') {
-          return `${window.location.origin}/api`;
-        }
-        return '/api';
+        return 'https://wish-dora.vercel.app/api';
       }
 
       function getAutoShowDelay() {

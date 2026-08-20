@@ -4,7 +4,7 @@
 
 const ADMIN_TOKEN_KEY = 'wishdora_admin_token';
 const ADMIN_INFO_KEY = 'wishdora_admin_info';
-const API_BASE_URL = (window.API_BASE_URL || '/api').replace(/\/$/, '');
+const API_BASE_URL = (window.API_BASE_URL || 'https://wish-dora.vercel.app/api').replace(/\/$/, '');
 
 function saveAdminSession(token, admin) {
   localStorage.setItem(ADMIN_TOKEN_KEY, token);

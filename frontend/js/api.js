@@ -1,8 +1,8 @@
 // js/api.js — WishDora API client
 
-// window.WD_API_BASE lets a page override this (see the inline script in index.html etc.);
-// otherwise resolve relative to whatever origin is serving the site.
-const API_BASE = window.WD_API_BASE || '/api';
+// The backend runs separately on Vercel; window.WD_API_BASE lets a page override
+// this (see the inline script in index.html etc.), otherwise it defaults there.
+const API_BASE = window.WD_API_BASE || 'https://wish-dora.vercel.app/api';
 
 // ── Token helpers ──────────────────────────────────────────
 const Auth = {
@@ -157,7 +157,7 @@ function updateNavbar() {
 
 async function adminFetch(path, options = {}) {
   const token = getAdminToken();
-  const baseUrl = (window.API_BASE_URL || '/api').replace(/\/$/, '');
+  const baseUrl = (window.API_BASE_URL || 'https://wish-dora.vercel.app/api').replace(/\/$/, '');
   const headers = { ...(options.headers || {}) };
 
   // Only set JSON content-type when we're not sending FormData (file uploads).
