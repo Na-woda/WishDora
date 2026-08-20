@@ -8,21 +8,23 @@ function unauthorized(res) {
 }
 
 function cronAuth(req, res, next) {
-  const expectedSecret = (process.env.CRON_SECRET || '').trim();
+  const expectedSecret = (process.env.CRON_SECRET || process.env.JWT_SECRET || '').trim();
 
   if (!expectedSecret) {
-    console.error('[Scheduler] CRON_SECRET is not configured in environment variables');
+    console.error('[Scheduler] Neither CRON_SECRET nor JWT_SECRET is configured in environment variables');
     return unauthorized(res);
   }
 
-  // Extract secret from Authorization header, x-cron-secret header, or query param
+  // Extract secret from Authorization header, custom headers, or query params
   let suppliedSecret = '';
-  const authorization = req.get('authorization');
-  const customHeader = req.get('x-cron-secret');
-  const querySecret = req.query.key || req.query.secret;
+  const authorization = req.get('authorization') || '';
+  const customHeader = req.get('x-cron-secret') || req.get('x-api-key') || '';
+  const querySecret = req.query.key || req.query.secret || req.query.token || req.query.apiKey;
 
-  if (authorization && authorization.startsWith('Bearer ')) {
-    suppliedSecret = authorization.slice('Bearer '.length).trim();
+  if (authorization) {
+    suppliedSecret = authorization.startsWith('Bearer ')
+      ? authorization.slice('Bearer '.length).trim()
+      : authorization.trim();
   } else if (customHeader) {
     suppliedSecret = customHeader.trim();
   } else if (querySecret) {
