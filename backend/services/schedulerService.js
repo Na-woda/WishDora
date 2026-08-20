@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Wish = require('../models/Wish');
 const GreetingCard = require('../models/GreetingCard');
 const { sendWishEmail } = require('./emailService');
+const connectDB = require('../config/db');
 
 function normalizeCloudinaryImageUrl(imageUrl) {
   if (!imageUrl || typeof imageUrl !== 'string') return '';
@@ -110,13 +111,17 @@ async function markFailed(wishId, reason) {
 }
 
 async function runDueWishes() {
+  await connectDB();
+
   if (mongoose.connection.readyState !== 1) {
     throw new Error('MongoDB is not connected');
   }
 
   const summary = { processed: 0, sent: 0, failed: 0 };
+  const maxBatch = 10;
+  let count = 0;
 
-  while (true) {
+  while (count < maxBatch) {
     const wish = await Wish.findOneAndUpdate(
       { status: 'Pending', scheduleDate: { $lte: new Date() } },
       { $set: { status: 'Processing' } },
@@ -124,6 +129,7 @@ async function runDueWishes() {
     );
 
     if (!wish) break;
+    count += 1;
     summary.processed += 1;
 
     try {

@@ -31,24 +31,18 @@ function resolveCardImageUrl(wish) {
   return '';
 }
 
-// Create reusable transporter using Gmail SMTP
+// Create reusable transporter using Gmail SMTP with timeouts suitable for Serverless
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
   secure: false, // TLS
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD, // App Password (not account password)
+    user: process.env.GMAIL_USER || process.env.EMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS,
   },
-});
-
-// Verify connection on startup
-transporter.verify((error) => {
-  if (error) {
-    console.error('❌ Email transporter error:', error.message);
-  } else {
-    console.log('✅ Gmail SMTP ready');
-  }
+  connectionTimeout: 5000,
+  greetingTimeout: 5000,
+  socketTimeout: 5000,
 });
 
 /**
