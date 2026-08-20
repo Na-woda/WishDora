@@ -1,12 +1,8 @@
 // js/api.js — WishDora API client
 
-<<<<<<< HEAD
 // The backend runs separately on Vercel; window.WD_API_BASE lets a page override
 // this (see the inline script in index.html etc.), otherwise it defaults there.
 const API_BASE = window.WD_API_BASE || 'https://wish-dora.vercel.app/api';
-=======
-const API_BASE = 'https://wish-dora.vercel.app/api';
->>>>>>> origin/main
 
 // ── Token helpers ──────────────────────────────────────────
 const Auth = {
