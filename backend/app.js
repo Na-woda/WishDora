@@ -84,6 +84,9 @@ function createApp({ serveStatic = false } = {}) {
   app.use('/api/auth', authRoutes);
   app.use('/api/wishes', wishRoutes);
   app.use('/api/scheduler', schedulerRoutes);
+  app.use('/api/cron', schedulerRoutes);
+  app.use('/scheduler', schedulerRoutes);
+  app.use('/cron', schedulerRoutes);
   app.use('/api/cards', publicCardRoutes);
   app.use('/api/admin/cards', adminCardRoutes);
   app.use('/api/categories', publicCategoryRoutes);
