@@ -1,185 +1,32 @@
-// server.js — WishDora Backend
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
+// server.js — WishDora local development entrypoint.
+// Builds the shared Express app (see app.js) with static frontend serving
+// enabled, then starts it on a port. Netlify deploys the frontend via its CDN
+// and the API via netlify/functions/api.js instead of running this file.
 const mongoose = require('mongoose');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-const connectDB = require('./config/db');
+const createApp = require('./app');
 
-const authRoutes = require('./routes/auth');
-const wishRoutes = require('./routes/wishes');
-const userRoutes = require('./routes/userRoutes');
-const { publicCardRoutes, adminCardRoutes } = require('./routes/cardRoutes');
-const { publicCategoryRoutes, adminCategoryRoutes } = require('./routes/categoryRoutes');
-const { adminLogin } = require('./controllers/authController');
-const schedulerRoutes = require('./routes/schedulerRoutes');
-const { sendFeedbackEmail } = require('./services/emailService');
-
-const app = express();
 const PORT = Number(process.env.PORT) || 5000;
+const app = createApp({ serveStatic: true });
 
-// ── Security & Middleware ──────────────────────────────────
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: 'same-site' },
-  contentSecurityPolicy: false, // disabled — the app uses inline scripts extensively
-}));
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false,
-}));
-app.use(express.json({ limit: '5mb' })); // 5MB for base64 card images
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: { success: false, message: 'Too many requests, please try again later.' },
-});
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { success: false, message: 'Too many login attempts.' },
-});
-const feedbackLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { success: false, message: 'Too many feedback submissions. Please try again later.' },
-});
-
-app.use('/api/', limiter);
-app.use('/api/auth/', authLimiter);
-
-// ── Routes ─────────────────────────────────────────────────
-app.post('/api/admin/auth/login', adminLogin);
-app.use('/api/auth', authRoutes);
-app.use('/api/wishes', wishRoutes);
-app.use('/api/scheduler', schedulerRoutes);
-app.use('/api/cards', publicCardRoutes);
-app.use('/api/admin/cards', adminCardRoutes);
-app.use('/api/categories', publicCategoryRoutes);
-app.use('/api/admin/categories', adminCategoryRoutes);
-app.use('/api/admin', userRoutes);
-
-// Serve frontend static files for the public site
-const frontendRoot = path.join(__dirname, '../frontend');
-app.use(express.static(frontendRoot));
-app.get('/', (req, res) => {
-  res.sendFile(path.join(frontendRoot, 'public/index.html'));
-});
-app.get('/index.html', (req, res) => {
-  res.sendFile(path.join(frontendRoot, 'public/index.html'));
-});
-
-app.post('/api/feedback', feedbackLimiter, async (req, res) => {
-  const { rating, suggestion = '', storeRecommendation, recommendFriend, userName, userEmail, userId } = req.body || {};
-
-  const numericRating = Number(rating);
-  if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) {
-    return res.status(400).json({ success: false, message: 'Please select a rating.' });
-  }
-  if (!['Yes', 'Maybe', 'No'].includes(storeRecommendation)) {
-    return res.status(400).json({ success: false, message: 'Please answer the store recommendation question.' });
-  }
-  if (typeof suggestion !== 'string' || suggestion.length > 2000) {
-    return res.status(400).json({ success: false, message: 'Feedback must be 2,000 characters or fewer.' });
-  }
-  if (userEmail && (typeof userEmail !== 'string' || !/^\S+@\S+\.\S+$/.test(userEmail))) {
-    return res.status(400).json({ success: false, message: 'The supplied email address is invalid.' });
-  }
-
-  console.log('💬 New feedback received:', {
-    rating,
-    storeRecommendation,
-    recommendFriend,
-    suggestion: suggestion.trim(),
-    userName,
-    userEmail,
-    userId,
+const tryListen = (port) => {
+  const server = app.listen(port, () => {
+    console.log(`\n🚀 WishDora API running on http://localhost:${port}`);
+    console.log(`📋 API Docs: http://localhost:${port}/api/health`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}\n`);
   });
 
-  const feedback = {
-    rating: numericRating,
-    storeRecommendation,
-    recommendFriend: Boolean(recommendFriend),
-    suggestion: suggestion.trim(),
-    userName: typeof userName === 'string' ? userName.trim().slice(0, 120) : '',
-    userEmail: typeof userEmail === 'string' ? userEmail.trim().slice(0, 254) : '',
-    userId: typeof userId === 'string' ? userId.slice(0, 120) : '',
-  };
-
-  try {
-    await sendFeedbackEmail(feedback);
-    console.log(`Feedback email sent: ${numericRating}/5`);
-    return res.status(201).json({ success: true, message: 'Thank you for your feedback!' });
-  } catch (error) {
-    console.error('Feedback email delivery failed:', error.message);
-    const unconfigured = error.message === 'Feedback email delivery is not configured.';
-    return res.status(unconfigured ? 503 : 502).json({
-      success: false,
-      message: unconfigured ? 'Feedback email delivery is not configured yet.' : 'Unable to deliver feedback. Please try again later.',
-    });
-  }
-});
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: '💌 WishDora API is running',
-    time: new Date().toISOString(),
-    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && port < 5010) {
+      console.warn(`⚠️ Port ${port} is busy, trying ${port + 1}...`);
+      server.close(() => tryListen(port + 1));
+    } else {
+      console.error('❌ Failed to start server:', err.message);
+      process.exit(1);
+    }
   });
-});
+};
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('🔥 Unhandled error:', err);
-  res.status(500).json({ success: false, message: 'Internal server error' });
-});
-
-// ── Database & Server Start ────────────────────────────────
-async function startServer() {
-  try {
-    await connectDB();
-    console.log('✅ MongoDB connected:', mongoose.connection.host);
-
-    const tryListen = (port) => {
-      const server = app.listen(port, () => {
-        console.log(`\n🚀 WishDora API running on http://localhost:${port}`);
-        console.log(`📋 API Docs: http://localhost:${port}/api/health`);
-        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}\n`);
-      });
-
-      server.on('error', (err) => {
-        if (err.code === 'EADDRINUSE' && port < 5010) {
-          console.warn(`⚠️ Port ${port} is busy, trying ${port + 1}...`);
-          server.close(() => tryListen(port + 1));
-        } else {
-          console.error('❌ Failed to start server:', err.message);
-          process.exit(1);
-        }
-      });
-    };
-
-    tryListen(PORT);
-  } catch (err) {
-    console.error('❌ Failed to start server:', err.message);
-    process.exit(1);
-  }
-}
+tryListen(PORT);
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
@@ -187,5 +34,3 @@ process.on('SIGTERM', async () => {
   await mongoose.connection.close();
   process.exit(0);
 });
-
-startServer();

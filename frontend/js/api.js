@@ -1,6 +1,8 @@
 // js/api.js — WishDora API client
 
-const API_BASE = 'http://localhost:5000/api';
+// window.WD_API_BASE lets a page override this (see the inline script in index.html etc.);
+// otherwise resolve relative to whatever origin is serving the site.
+const API_BASE = window.WD_API_BASE || '/api';
 
 // ── Token helpers ──────────────────────────────────────────
 const Auth = {
@@ -38,7 +40,7 @@ async function apiFetch(endpoint, options = {}) {
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
   } catch (networkErr) {
-    throw new Error('Cannot reach server. Make sure backend is running on port 5000 (run: node server.js)');
+    throw new Error('Cannot reach server. Please try again in a moment.');
   }
 
   const data = await res.json();
@@ -155,7 +157,7 @@ function updateNavbar() {
 
 async function adminFetch(path, options = {}) {
   const token = getAdminToken();
-  const baseUrl = (window.API_BASE_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+  const baseUrl = (window.API_BASE_URL || '/api').replace(/\/$/, '');
   const headers = { ...(options.headers || {}) };
 
   // Only set JSON content-type when we're not sending FormData (file uploads).

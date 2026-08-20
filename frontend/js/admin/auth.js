@@ -4,7 +4,7 @@
 
 const ADMIN_TOKEN_KEY = 'wishdora_admin_token';
 const ADMIN_INFO_KEY = 'wishdora_admin_info';
-const API_BASE_URL = (window.API_BASE_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+const API_BASE_URL = (window.API_BASE_URL || '/api').replace(/\/$/, '');
 
 function saveAdminSession(token, admin) {
   localStorage.setItem(ADMIN_TOKEN_KEY, token);

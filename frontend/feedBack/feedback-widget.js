@@ -345,7 +345,7 @@
         if (window.location.origin && window.location.origin !== 'null') {
           return `${window.location.origin}/api`;
         }
-        return 'http://localhost:5000/api';
+        return '/api';
       }
 
       function getAutoShowDelay() {

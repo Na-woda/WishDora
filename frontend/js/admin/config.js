@@ -1,3 +1,4 @@
 // Central place to point the frontend at the backend API.
-// Change this when deploying (e.g. to your production API URL).
-window.API_BASE_URL = 'http://localhost:5000/api';
+// Relative path so it resolves against whatever origin is serving the site
+// (the /api/* redirect in netlify.toml proxies this to the Netlify Function).
+window.API_BASE_URL = '/api';
