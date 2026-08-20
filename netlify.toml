@@ -1,2 +1,10 @@
 [build]
   publish = "frontend"
+[functions]
+  directory = "backend/netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
