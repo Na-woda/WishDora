@@ -1,6 +1,8 @@
 // js/api.js — WishDora API client
 
-const API_BASE = 'https://wish-dora.vercel.app/api';
+// The backend runs separately on Vercel; window.WD_API_BASE lets a page override
+// this (see the inline script in index.html etc.), otherwise it defaults there.
+const API_BASE = window.WD_API_BASE || 'https://wish-dora.vercel.app/api';
 
 // ── Token helpers ──────────────────────────────────────────
 const Auth = {
@@ -38,7 +40,7 @@ async function apiFetch(endpoint, options = {}) {
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
   } catch (networkErr) {
-    throw new Error('Cannot reach server. Make sure backend is running on port 5000 (run: node server.js)');
+    throw new Error('Cannot reach server. Please try again in a moment.');
   }
 
   const data = await res.json();
