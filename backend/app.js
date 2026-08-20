@@ -27,29 +27,34 @@ const { sendFeedbackEmail } = require('./services/emailService');
 // which handler responds first. Netlify's own CDN serves the frontend in
 // production, so the Netlify Function build omits it entirely.
 function createApp({ serveStatic = false } = {}) {
-  connectDB();
-
   const app = express();
 
-  // Netlify's Functions/CDN layer sits in front of this app as a single proxy
-  // hop, so Express needs to trust exactly that one hop's X-Forwarded-For to see
-  // the real client IP — otherwise express-rate-limit can't key limits per-IP
-  // (ERR_ERL_UNDEFINED_IP_ADDRESS). Trusting more than the real hop count would
-  // let a client spoof X-Forwarded-For to bypass rate limiting.
+  // Netlify / Vercel proxy configuration
   app.set('trust proxy', 1);
+
+  // ── Database Connection Middleware ────────────────────────
+  app.use(async (req, res, next) => {
+    try {
+      await connectDB();
+    } catch (err) {
+      console.error('[DB Middleware] Connection error:', err.message);
+    }
+    next();
+  });
 
   // ── Security & Middleware ──────────────────────────────────
   app.use(helmet({
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: 'same-site' },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
     contentSecurityPolicy: false, // disabled — the app uses inline scripts extensively
   }));
   app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: false,
   }));
+  app.options('*', cors());
   app.use(express.json({ limit: '5mb' })); // 5MB for base64 card images
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan('dev'));
@@ -93,6 +98,14 @@ function createApp({ serveStatic = false } = {}) {
     });
     app.get('/index.html', (req, res) => {
       res.sendFile(path.join(frontendRoot, 'index.html'));
+    });
+  } else {
+    app.get('/', (req, res) => {
+      res.json({
+        success: true,
+        message: '💌 WishDora API is running',
+        health: '/api/health',
+      });
     });
   }
 

@@ -26,11 +26,15 @@ const tryListen = (port) => {
   });
 };
 
-tryListen(PORT);
+if (require.main === module) {
+  tryListen(PORT);
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received — shutting down gracefully');
-  await mongoose.connection.close();
-  process.exit(0);
-});
+  // Graceful shutdown
+  process.on('SIGTERM', async () => {
+    console.log('SIGTERM received — shutting down gracefully');
+    await mongoose.connection.close();
+    process.exit(0);
+  });
+}
+
+module.exports = app;
