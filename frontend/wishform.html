@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/LogoWishdora.png">
 <link rel="stylesheet" href="css/mainStyle.css">
 <link rel="stylesheet" href="../feedBack/feedback-widget.css?v=2">
 <title>Schedule a Wish – WishDora</title>
@@ -20,6 +21,12 @@
 .form-group{display:flex;flex-direction:column;gap:6px;font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
 .form-group input,.form-group textarea,.form-group select{padding:10px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none;transition:border-color var(--tr);}
 .form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(194,92,12,.1);}
+.form-group input[type="date"],
+.form-group input[type="time"]{color-scheme:light;}
+body.dark .form-group input[type="date"],
+body.dark .form-group input[type="time"]{color-scheme:dark;}
+.form-group .field-invalid{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.12);}
+.delivery-options.field-invalid{outline:2px solid #dc2626;outline-offset:4px;border-radius:8px;}
 .full{grid-column:span 2;}
 .btn-schedule{width:100%;padding:14px;border:none;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--accent),#e05800);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(194,92,12,.35);transition:opacity var(--tr);display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-schedule:hover{opacity:.86;}
@@ -521,7 +528,7 @@ body.light-mode .cat-modal {
 <!-- NAVBAR -->
 <header class="navbar">
   <div class="logo">
-    <img src="E:\WishSite\LogoWishdora.png" alt="WishDora Logo"
+    <img src="images/LogoWishdora.png" alt="WishDora Logo"
          onerror="this.parentElement.innerHTML='<div class=\'logo-emoji\'>🎂</div>'">
   </div>
   <div class="tagline">Never Let a Special Day Feel Forgotten</div>
@@ -550,23 +557,23 @@ body.light-mode .cat-modal {
 <div class="form-left" id="wishForm">
   <div class="form-group">
     <label>Your Name</label>
-    <input id="senderName" type="text" placeholder="Your full name">
+    <input id="senderName" type="text" placeholder="Your full name" required>
   </div>
   <div class="form-group">
     <label>Greeting</label>
-    <input id="greeting" type="text" placeholder="Happy Birthday" value="Happy Birthday" oninput="updatePreview()">
+    <input id="greeting" type="text" placeholder="Happy Birthday" value="Happy Birthday" oninput="updatePreview()" required>
   </div>
   <div class="form-group">
     <label>Receiver Name</label>
-    <input id="receiverName" type="text" placeholder="Their name" oninput="updatePreview()">
+    <input id="receiverName" type="text" placeholder="Their name" oninput="updatePreview()" required>
   </div>
   <div class="form-group">
     <label>Date</label>
-    <input id="scheduleDate" type="date" onchange="updatePreview()">
+    <input id="scheduleDate" type="date" onchange="updatePreview()" required>
   </div>
   <div class="form-group">
     <label>Receiver Email <span id="receiverEmailLock" hidden>(locked while editing)</span></label>
-    <input id="receiverEmail" type="email" placeholder="their@email.com" oninput="updatePreview()">
+    <input id="receiverEmail" type="email" placeholder="their@email.com" oninput="updatePreview()" required>
   </div>
   <div class="form-group">
     <label>Send Time</label>
@@ -588,7 +595,7 @@ body.light-mode .cat-modal {
   <div class="form-section-title full">💌 Message</div>
   <div class="form-group full">
     <label>Your heartfelt message</label>
-    <textarea id="message" rows="4" placeholder="Write your heartfelt message here…" oninput="updatePreview()"></textarea>
+    <textarea id="message" rows="4" placeholder="Write your heartfelt message here…" oninput="updatePreview()" required></textarea>
   </div>
 
   <div class="form-section-title full">⚙️ Delivery Options</div>
@@ -603,7 +610,7 @@ body.light-mode .cat-modal {
   </div>
 
   <div class="full">
-    <button class="btn-schedule" id="scheduleBtn" onclick="scheduleWish()" disabled>
+    <button class="btn-schedule" id="scheduleBtn" type="button" onclick="scheduleWish()">
       🎁 Save & Schedule Wish
     </button>
   </div>
@@ -647,7 +654,7 @@ body.light-mode .cat-modal {
     </div>
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label class="custom-upload-btn" title="Upload a custom photo or design from your device">
-        <input type="file" id="customImageInput" accept="image/*" style="display:none;" onchange="handleCustomImageUpload(event)">
+        <input type="file" id="customImageInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display:none;" onchange="handleCustomImageUpload(event)">
         📸 Upload Custom Picture
       </label>
       <div class="cat-search-wrap">
@@ -756,9 +763,10 @@ document.getElementById('scheduleDate').min = new Date().toISOString().split('T'
 
 // Delivery options selection
 let deliveryVal = '';
+let isCustomImageUploading = false;
 function updateScheduleButtonState() {
   const btn = document.getElementById('scheduleBtn');
-  if (btn) btn.disabled = !deliveryVal;
+  if (btn) btn.disabled = isCustomImageUploading;
 }
 function toast(msg, type='inf') {
   const wrap = document.getElementById('toastWrap');
@@ -794,6 +802,103 @@ document.getElementById('deliveryOpts').addEventListener('click', e => {
   updateScheduleButtonState();
 });
 updateScheduleButtonState();
+
+const requiredWishFields = [
+  { id: 'senderName', label: 'Your Name' },
+  { id: 'greeting', label: 'Greeting' },
+  { id: 'receiverName', label: 'Receiver Name' },
+  { id: 'scheduleDate', label: 'Date' },
+  { id: 'message', label: 'Message' },
+];
+
+function validateWishForm() {
+  document.querySelectorAll('#wishForm .field-invalid').forEach((field) => {
+    field.classList.remove('field-invalid');
+    field.removeAttribute('aria-invalid');
+  });
+
+  const missingFields = requiredWishFields.filter(({ id }) => {
+    const field = document.getElementById(id);
+    const missing = !field.value.trim();
+    if (missing) {
+      field.classList.add('field-invalid');
+      field.setAttribute('aria-invalid', 'true');
+    }
+    return missing;
+  });
+
+  if (!deliveryVal) {
+    missingFields.push({ label: 'Send Via' });
+    document.getElementById('deliveryOpts').classList.add('field-invalid');
+  }
+
+  if ((deliveryVal === 'email' || deliveryVal === 'both') &&
+      !document.getElementById('receiverEmail').value.trim()) {
+    const emailField = document.getElementById('receiverEmail');
+    if (!emailField.classList.contains('field-invalid')) {
+      missingFields.push({ id: 'receiverEmail', label: 'Receiver Email' });
+      emailField.classList.add('field-invalid');
+      emailField.setAttribute('aria-invalid', 'true');
+    }
+  }
+
+  const firstInvalid = missingFields.find(({ id }) => id);
+  if (firstInvalid) {
+    const field = document.getElementById(firstInvalid.id);
+    field.focus();
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (missingFields.length) {
+    document.getElementById('deliveryOpts').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  if (missingFields.length) {
+    const labels = [...new Set(missingFields.map(({ label }) => label))];
+    showToast(`Please fill in the required fields: ${labels.join(', ')}.`, 'error');
+    return false;
+  }
+
+  const receiverEmail = document.getElementById('receiverEmail').value.trim();
+  if ((deliveryVal === 'email' || deliveryVal === 'both') &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiverEmail)) {
+    const emailField = document.getElementById('receiverEmail');
+    emailField.classList.add('field-invalid');
+    emailField.setAttribute('aria-invalid', 'true');
+    emailField.focus();
+    emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast('Please enter a valid receiver email address.', 'error');
+    return false;
+  }
+
+  const dateField = document.getElementById('scheduleDate');
+  if (dateField.value < dateField.min) {
+    dateField.classList.add('field-invalid');
+    dateField.setAttribute('aria-invalid', 'true');
+    dateField.focus();
+    dateField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast('Please choose today or a future date.', 'error');
+    return false;
+  }
+
+  return true;
+}
+
+document.querySelectorAll('#wishForm input:not([type="radio"]), #wishForm textarea').forEach((field) => {
+  field.addEventListener('input', () => {
+    if (field.value.trim()) {
+      field.classList.remove('field-invalid');
+      field.removeAttribute('aria-invalid');
+    }
+  });
+  field.addEventListener('change', () => {
+    if (field.value.trim()) {
+      field.classList.remove('field-invalid');
+      field.removeAttribute('aria-invalid');
+    }
+  });
+});
+document.getElementById('deliveryOpts').addEventListener('click', () => {
+  document.getElementById('deliveryOpts').classList.remove('field-invalid');
+});
 
 // Load an existing wish when the dashboard opens this form with ?edit=<wish id>.
 const editingWishId = new URLSearchParams(window.location.search).get('edit');
@@ -916,37 +1021,58 @@ function renderCategoryCard(cat) {
   return wrap;
 }
 
-function handleCustomImageUpload(event) {
+async function handleCustomImageUpload(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
-  if (!file.type.startsWith('image/')) {
-    showToast('Please select a valid image file 🖼️', 'error');
+  const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedImageTypes.includes(file.type)) {
+    showToast('Please select a JPG, PNG, or WEBP image 🖼️', 'error');
+    event.target.value = '';
     return;
   }
 
   if (file.size > 5 * 1024 * 1024) {
     showToast('Image size should be under 5MB ⚠️', 'error');
+    event.target.value = '';
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    const imageName = file.name.replace(/\.[^/.]+$/, '') || 'Custom Picture';
+  const imageName = file.name.replace(/\.[^/.]+$/, '') || 'Custom Picture';
+  const previewUrl = URL.createObjectURL(file);
+  const imageInput = event.target;
+  const preview = document.getElementById('prevCard');
+  imageInput.disabled = true;
+  isCustomImageUploading = true;
+  updateScheduleButtonState();
+  preview.innerHTML =
+    `<img src="${previewUrl}" alt="${escapeCatHtml(imageName)}" style="width:100%;height:100%;object-fit:cover;" />`;
+
+  try {
+    const result = await WishesAPI.uploadCustomImage(file);
+    if (!result.imageUrl || !/^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\//i.test(result.imageUrl)) {
+      throw new Error('The uploaded image did not return a valid Cloudinary URL.');
+    }
     selectedCard = {
       id: null,
       title: imageName,
-      imageUrl: dataUrl,
+      imageUrl: result.imageUrl,
       kind: 'uploaded_custom',
     };
-
-    document.getElementById('prevCard').innerHTML =
-      `<img src="${dataUrl}" alt="${escapeCatHtml(imageName)}" style="width:100%;height:100%;object-fit:cover;" />`;
-
-    showToast(`📸 Custom picture "${imageName}" selected!`, 'success');
-  };
-  reader.readAsDataURL(file);
+    preview.innerHTML =
+      `<img src="${result.imageUrl}" alt="${escapeCatHtml(imageName)}" style="width:100%;height:100%;object-fit:cover;" />`;
+    showToast(`📸 Custom picture "${imageName}" uploaded!`, 'success');
+  } catch (error) {
+    selectedCard = null;
+    preview.textContent = '🎨 Select a card below';
+    showToast(`❌ ${error.message || 'Could not upload image'}`, 'error');
+  } finally {
+    URL.revokeObjectURL(previewUrl);
+    imageInput.disabled = false;
+    imageInput.value = '';
+    isCustomImageUploading = false;
+    updateScheduleButtonState();
+  }
 }
 
 function renderCategoryCard(cat) {
@@ -1163,6 +1289,10 @@ function renderPickCard(card) {
     <div class="pick-card-title">${escapeCatHtml(card.title || card.label || 'Greeting Card')}</div>`;
 
   wrap.onclick = () => {
+    if (isCustomImageUploading) {
+      showToast('Please wait for your image to finish uploading.', 'info');
+      return;
+    }
     document.querySelectorAll('.pick-card').forEach((c) => c.classList.remove('active'));
     wrap.classList.add('active');
 
@@ -1219,6 +1349,13 @@ loadGreetingCards();
 
 // ── Schedule wish ──────────────────────────────────────────
 async function scheduleWish() {
+  if (isCustomImageUploading) {
+    showToast('Please wait for your image to finish uploading.', 'info');
+    return;
+  }
+
+  if (!validateWishForm()) return;
+
   // Auth check
   if (!Auth.isLoggedIn()) {
     showToast('Please sign in to schedule a wish 🔐', 'error');

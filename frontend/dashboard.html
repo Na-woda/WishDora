@@ -4,16 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Dashboard – WishDora</title>
+  <link rel="icon" type="image/png" href="images/LogoWishdora.png">
   <link rel="stylesheet" href="css/mainStyle.css">
   <link rel="stylesheet" href="css/userdashboard.css">
   <link rel="stylesheet" href="../feedBack/feedback-widget.css?v=2">
 </head>
-<body>
+<body class="dashboard-page">
 
 <!-- NAVBAR -->
 <header class="navbar">
+  <button class="dashboard-menu-toggle" id="sidebarToggle" type="button" aria-label="Open dashboard menu" aria-controls="dashboardSidebar" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
   <div class="logo">
-    <img src="E:\WishSite\LogoWishdora.png" alt="WishDora Logo"
+    <img src="images/LogoWishdora.png" alt="WishDora Logo"
          onerror="this.parentElement.innerHTML='<div class=\'logo-emoji\'>🎂</div>'">
   </div></div>
   <div class="tagline">Never Let a Special Day Feel Forgotten</div>
@@ -23,12 +27,17 @@
     <a href="wishform.html" class="nav-icon-btn" title="New Wish">🎁</a>
   </div>
 </header>
+<button class="mobile-drawer-backdrop" id="sidebarBackdrop" type="button" aria-label="Close dashboard menu" tabindex="-1"></button>
 
 <!-- DASHBOARD -->
 <section class="dashboard">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="dashboardSidebar" aria-label="Dashboard profile and tools">
+    <div class="sidebar-drawer-header">
+      <span>Dashboard menu</span>
+      <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close dashboard menu">✕</button>
+    </div>
     <div class="profile-card">
       <div class="avatar">U <div class="avatar-edit">✏</div></div>
       <div class="profile-name" id="profileName">Hello, User!</div>
@@ -255,6 +264,39 @@ function toggleDark() {
   applyDark();
 }
 applyDark();
+
+// ── Mobile sidebar drawer ──────────────────────────────────
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarClose = document.getElementById('sidebarClose');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+function closeSidebar(restoreFocus = false) {
+  document.body.classList.remove('sidebar-open');
+  sidebarToggle.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) sidebarToggle.focus();
+}
+
+function openSidebar() {
+  document.body.classList.add('sidebar-open');
+  sidebarToggle.setAttribute('aria-expanded', 'true');
+  sidebarClose.focus();
+}
+
+sidebarToggle.addEventListener('click', () => {
+  if (document.body.classList.contains('sidebar-open')) closeSidebar();
+  else openSidebar();
+});
+sidebarClose.addEventListener('click', () => closeSidebar(true));
+sidebarBackdrop.addEventListener('click', () => closeSidebar(true));
+document.getElementById('dashboardSidebar').addEventListener('click', event => {
+  if (event.target.closest('a, .cta-btn, .logout-btn')) closeSidebar();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) closeSidebar(true);
+});
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) closeSidebar();
+});
 
 // ── Data ───────────────────────────────────────────────────
 let wishes = [];

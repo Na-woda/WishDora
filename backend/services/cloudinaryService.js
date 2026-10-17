@@ -11,6 +11,38 @@ const isCloudinaryConfigured = () => {
 
 const buildDataUrl = (buffer, mimeType = 'image/png') => `data:${mimeType};base64,${buffer.toString('base64')}`;
 
+const uploadConfiguredBufferToCloudinary = (buffer, folder) =>
+  new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: 'image',
+        transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        if (!result?.secure_url || !result.public_id) {
+          return reject(new Error('Cloudinary returned an incomplete upload result'));
+        }
+        resolve(result);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
+
+const uploadBufferToCloudinaryOrThrow = async (buffer, folder) => {
+  if (!isCloudinaryConfigured()) {
+    throw new Error('Cloudinary uploads are not configured');
+  }
+
+  try {
+    return await uploadConfiguredBufferToCloudinary(buffer, folder);
+  } catch (error) {
+    console.error('[Cloudinary] Upload failed:', error.message);
+    throw new Error('Image upload to Cloudinary failed');
+  }
+};
+
 /**
  * Uploads a buffer (from multer memoryStorage) to Cloudinary via a stream.
  * Falls back to a data URL when Cloudinary is not configured or upload fails.
@@ -25,22 +57,7 @@ const uploadBufferToCloudinary = async (buffer, folder = 'wishdora/cards', mimeT
   }
 
   try {
-    const result = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder,
-          resource_type: 'image',
-          transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
-        },
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        }
-      );
-      streamifier.createReadStream(buffer).pipe(uploadStream);
-    });
-
-    return result;
+    return await uploadConfiguredBufferToCloudinary(buffer, folder);
   } catch (error) {
     console.warn('[Cloudinary] Upload failed. Falling back to a data URL:', error.message);
     return {
@@ -59,4 +76,8 @@ const deleteFromCloudinary = async (publicId) => {
   }
 };
 
-module.exports = { uploadBufferToCloudinary, deleteFromCloudinary };
+module.exports = {
+  uploadBufferToCloudinary,
+  uploadBufferToCloudinaryOrThrow,
+  deleteFromCloudinary,
+};

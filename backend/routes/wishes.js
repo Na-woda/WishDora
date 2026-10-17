@@ -5,9 +5,38 @@ const { body, validationResult } = require('express-validator');
 const Wish = require('../models/Wish');
 const GreetingCard = require('../models/GreetingCard');
 const { protect } = require('../middleware/auth');
+const { uploadCardImage } = require('../middleware/upload');
+const { uploadBufferToCloudinaryOrThrow } = require('../services/cloudinaryService');
 
 // All wish routes require authentication
 router.use(protect);
+
+// Upload a custom greeting image and return a durable public URL for the wish.
+router.post('/custom-image', uploadCardImage, async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Choose an image to upload' });
+  }
+
+  try {
+    const result = await uploadBufferToCloudinaryOrThrow(
+      req.file.buffer,
+      'wishdora/custom-wishes'
+    );
+    res.status(201).json({
+      success: true,
+      imageUrl: result.secure_url,
+      imagePublicId: result.public_id,
+    });
+  } catch (error) {
+    const notConfigured = error.message === 'Cloudinary uploads are not configured';
+    res.status(notConfigured ? 503 : 502).json({
+      success: false,
+      message: notConfigured
+        ? 'Custom image uploads are temporarily unavailable. Please try again later.'
+        : 'Could not upload your image. Please try again.',
+    });
+  }
+});
 
 // ── GET /api/wishes ────────────────────────────────────────
 // Get all wishes for the logged-in user

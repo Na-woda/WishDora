@@ -468,3 +468,188 @@
     background: var(--accent); color: white; font-size: 0.7rem; font-weight: 700;
     margin-left: 6px;
   }
+
+  .dashboard-menu-toggle,
+  .sidebar-drawer-header,
+  .mobile-drawer-backdrop { display: none; }
+
+  .dashboard-page .dashboard {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+  .dashboard-page .main-panel,
+  .dashboard-page .activities-card,
+  .dashboard-page .table-wrap { min-width: 0; }
+  .dashboard-page .footer-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .dashboard-page .footer-col { min-width: 0; }
+  @media (max-width: 768px) {
+    .dashboard-page .navbar {
+      gap: 12px;
+      height: 64px;
+      padding: 0 16px;
+    }
+    .dashboard-page .dashboard-menu-toggle {
+      display: flex;
+      flex: 0 0 44px;
+      width: 44px;
+      height: 44px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      cursor: pointer;
+    }
+    .dashboard-menu-toggle span {
+      width: 19px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--text);
+    }
+    .dashboard-page .navbar .tagline { display: none; }
+    .dashboard-page .navbar .logo { margin-right: auto; }
+    .dashboard-page .nav-icons { gap: 4px; }
+    .dashboard-page .nav-icon-btn { width: 44px; height: 44px; }
+
+    .dashboard-page .dashboard {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+      padding: 1rem 1rem 2rem;
+    }
+    .dashboard-page .sidebar {
+      position: fixed;
+      z-index: 1201;
+      top: 64px;
+      bottom: 0;
+      left: 0;
+      width: min(340px, calc(100vw - 48px));
+      padding: 1rem;
+      overflow-y: auto;
+      background: var(--bg);
+      box-shadow: 12px 0 32px rgba(0, 0, 0, 0.2);
+      transform: translateX(-105%);
+      transition: transform var(--transition);
+      overscroll-behavior: contain;
+    }
+    .dashboard-page.sidebar-open { overflow: hidden; }
+    .dashboard-page.sidebar-open .sidebar { transform: translateX(0); }
+    .dashboard-page .sidebar-drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 44px;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    .dashboard-page .sidebar-close {
+      display: inline-flex;
+      width: 44px;
+      height: 44px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .dashboard-page .mobile-drawer-backdrop {
+      position: fixed;
+      z-index: 1200;
+      inset: 64px 0 0;
+      width: 100%;
+      border: 0;
+      background: rgba(0, 0, 0, 0.48);
+      cursor: pointer;
+    }
+    .dashboard-page.sidebar-open .mobile-drawer-backdrop { display: block; }
+
+    .dashboard-page .activity-header {
+      align-items: stretch;
+      padding: 1rem;
+    }
+    .dashboard-page .header-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(116px, auto);
+      width: 100%;
+      min-width: 0;
+    }
+    .dashboard-page .search-box { min-width: 0; }
+    .dashboard-page .search-box input {
+      width: 100%;
+      min-width: 0;
+    }
+    .dashboard-page .filter-select { min-width: 0; max-width: 100%; }
+    .dashboard-page .filter-select,
+    .dashboard-page .search-box { min-height: 44px; }
+    .dashboard-page .mini-cal-nav,
+    .dashboard-page .modal-close,
+    .dashboard-page .btn-cancel,
+    .dashboard-page .btn-save {
+      min-height: 44px;
+    }
+    .dashboard-page .mini-cal-nav { min-width: 44px; }
+    .dashboard-page .action-btn { width: 44px; height: 44px; }
+    .dashboard-page .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    .dashboard-page .table-wrap table { min-width: 680px; }
+    .dashboard-page .site-footer {
+      padding: 2rem 1.25rem 1.25rem;
+      margin-top: 2rem;
+    }
+    .dashboard-page .footer-grid {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+      align-items: start;
+      gap: 1.5rem;
+    }
+    .dashboard-page .toast-container {
+      right: 12px;
+      bottom: 12px;
+      left: 12px;
+    }
+    .dashboard-page .toast {
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dashboard-page .navbar { padding: 0 10px; gap: 8px; }
+    .dashboard-page .nav-icons { gap: 0; }
+    .dashboard-page .nav-icon-btn { width: 40px; height: 44px; }
+    .dashboard-page .dashboard { padding: 0.75rem 0.75rem 1.5rem; }
+    .dashboard-page .profile-card { padding: 1.25rem 1rem; }
+    .dashboard-page .activity-header { padding: 0.9rem; }
+    .dashboard-page .header-actions { grid-template-columns: minmax(0, 1fr) 116px; gap: 6px; }
+    .dashboard-page .search-box { padding: 6px 9px; }
+    .dashboard-page .search-box input { font-size: 0.8rem; }
+    .dashboard-page .filter-select { padding: 6px 8px; font-size: 0.8rem; }
+    .dashboard-page .upcoming-card { padding: 1rem; }
+    .dashboard-page .upcoming-item { gap: 8px; padding: 0.65rem; }
+    .dashboard-page .up-name,
+    .dashboard-page .up-event,
+    .dashboard-page .profile-email,
+    .dashboard-page .preview-field-val { overflow-wrap: anywhere; }
+    .dashboard-page .modal-overlay { padding: 12px; }
+    .dashboard-page .modal {
+      width: 100%;
+      max-width: 480px;
+      max-height: calc(100dvh - 24px);
+      padding: 1.25rem;
+    }
+    .dashboard-page .modal-footer { flex-wrap: wrap; }
+    .dashboard-page .modal-footer > * { max-width: 100%; }
+    .dashboard-page .preview-content { overflow-wrap: anywhere; }
+    .dashboard-page .site-footer { padding: 1.75rem 1rem 1rem; }
+    .dashboard-page .footer-grid { grid-template-columns: minmax(0, 1fr); }
+  }
