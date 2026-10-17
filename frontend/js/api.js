@@ -71,6 +71,31 @@ const WishesAPI = {
   update: (id, data) => apiFetch(`/wishes/${id}`, { method: 'PUT', body: data }),
   delete: (id) => apiFetch(`/wishes/${id}`, { method: 'DELETE' }),
   resend: (id) => apiFetch(`/wishes/${id}/resend`, { method: 'POST' }),
+  async uploadCustomImage(file) {
+    const token = Auth.getToken();
+    const formData = new FormData();
+    formData.append('image', file);
+
+    let res;
+    try {
+      res = await fetch(`${API_BASE}/wishes/custom-image`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+    } catch (networkError) {
+      throw new Error('Cannot reach server. Please try again in a moment.');
+    }
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseError) {
+      throw new Error('The server returned an invalid image upload response.');
+    }
+    if (!res.ok) throw new Error(data.message || 'Image upload failed');
+    return data;
+  },
 };
 
 // ── Dark mode ──────────────────────────────────────────────
