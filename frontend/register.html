@@ -667,7 +667,7 @@ body.light-mode .form-card {
             <label for="fname">First Name *</label>
             <div class="input-wrap">
               <span class="icon">👤</span>
-              <input type="text" id="fname" placeholder="Jenny">
+              <input type="text" id="fname" placeholder="nawoda">
             </div>
             <div class="field-error" id="err-fname">First name is required.</div>
           </div>
@@ -675,7 +675,7 @@ body.light-mode .form-card {
             <label for="lname">Last Name *</label>
             <div class="input-wrap">
               <span class="icon">👤</span>
-              <input type="text" id="lname" placeholder="fernandez">
+              <input type="text" id="lname" placeholder="lakshani">
             </div>
             <div class="field-error" id="err-lname">Last name is required.</div>
           </div>
@@ -684,12 +684,15 @@ body.light-mode .form-card {
           <label for="email">Email Address *</label>
           <div class="input-wrap">
             <span class="icon">✉️</span>
-            <input type="email" id="email" placeholder="jenny@example.com">
+            <input type="email" id="email" placeholder="lakshani@example.com">
           </div>
           <div class="field-error" id="err-email">Enter a valid email address.</div>
         </div>
         <button type="button" class="btn-create" onclick="goStep2()">Continue →</button>
-      </div>
+        <div class="or-line">or</div>
+        <button type="button" class="btn-google" onclick="toast('Google sign-in coming soon!','inf')">🔍 Continue with Google</button>
+        </div>
+        
 
       <!-- STEP 2 -->
       <div id="formStep2" style="display:none">
@@ -753,8 +756,6 @@ body.light-mode .form-card {
           <span>I agree to the <a href="#" onclick="return false">Terms &amp; Conditions</a> and <a href="#" onclick="return false">Privacy Policy</a></span>
         </div>
         <button type="submit" class="btn-create" id="createBtn">🎉 Create My Account</button>
-        <div class="or-line">or</div>
-        <button type="button" class="btn-google" onclick="toast('Google sign-in coming soon!','inf')">🔍 Continue with Google</button>
         <div style="margin-top:14px">
           <button type="button" class="btn-google" onclick="goBack2()">← Back</button>
         </div>
