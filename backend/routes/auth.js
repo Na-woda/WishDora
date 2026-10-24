@@ -2,13 +2,15 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { sendWelcomeEmail, sendOtpEmail } = require('../services/emailService');
 const { protect } = require('../middleware/auth');
+const { getTokenVersion } = require('../utils/tokenVersion');
 
-function signToken(id) {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+function signToken(user) {
+  return jwt.sign({ id: user._id, tokenVersion: getTokenVersion(user) }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 }
@@ -33,7 +35,7 @@ router.post('/register', [
     }
 
     const user = await User.create({ name, email, password, phone: phone || '' });
-    const token = signToken(user._id);
+    const token = signToken(user);
 
     // Send welcome email (non-blocking)
     sendWelcomeEmail(user).catch(err => console.error('Welcome email failed:', err.message));
@@ -50,7 +52,7 @@ router.post('/register', [
       },
     });
   } catch (err) {
-    console.error('Register error:', err);
+    console.error('Register error:', err.name || 'Error');
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -78,7 +80,7 @@ router.post('/login', [
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    const token = signToken(user._id);
+    const token = signToken(user);
 
     res.json({
       success: true,
@@ -92,7 +94,7 @@ router.post('/login', [
       },
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('Login error:', err.name || 'Error');
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -122,18 +124,14 @@ router.post('/forgot-password', [
     user.resetOtpExpire = expireTime;
     await user.save();
 
-    console.log(`🔑 OTP generated for ${email}: ${otp}`);
-
     // Try sending email via emailService
     try {
       await sendOtpEmail(user.email, user.name, otp);
     } catch (emailErr) {
-      console.error('⚠️ OTP email delivery failed:', emailErr.message);
-      // Return success with note if in local dev without SMTP configured
-      return res.status(200).json({
-        success: true,
-        message: 'OTP generated. Check email (or server console if SMTP not configured).',
-        devOtp: process.env.NODE_ENV === 'development' ? otp : undefined,
+      console.error('Password reset email delivery failed:', emailErr.name || 'Error');
+      return res.status(503).json({
+        success: false,
+        message: 'Unable to send a verification code right now. Please try again later.',
       });
     }
 
@@ -142,7 +140,7 @@ router.post('/forgot-password', [
       message: 'OTP verification code has been sent to your email!',
     });
   } catch (err) {
-    console.error('Forgot password error:', err);
+    console.error('Forgot password error:', err.name || 'Error');
     res.status(500).json({ success: false, message: 'Failed to process request' });
   }
 });
@@ -178,7 +176,7 @@ router.post('/verify-otp', [
       message: 'OTP verified successfully!',
     });
   } catch (err) {
-    console.error('Verify OTP error:', err);
+    console.error('Verify OTP error:', err.name || 'Error');
     res.status(500).json({ success: false, message: 'Server error during OTP verification' });
   }
 });
@@ -210,19 +208,33 @@ router.post('/reset-password', [
       return res.status(400).json({ success: false, message: 'Incorrect OTP code.' });
     }
 
-    // Set new password (pre-save hook will hash it)
-    user.password = newPassword;
-    user.resetOtp = null;
-    user.resetOtpExpire = null;
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: user._id,
+        resetOtp: otp.trim(),
+        resetOtpExpire: { $gt: new Date() },
+      },
+      {
+        $set: {
+          password: await bcrypt.hash(newPassword, 12),
+          resetOtp: null,
+          resetOtpExpire: null,
+        },
+        $inc: { tokenVersion: 1 },
+      },
+      { new: true, runValidators: true },
+    );
 
-    await user.save();
+    if (!updatedUser) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP code request.' });
+    }
 
     res.json({
       success: true,
       message: 'Password reset successfully! You can now sign in with your new password.',
     });
   } catch (err) {
-    console.error('Reset password error:', err);
+    console.error('Reset password error:', err.name || 'Error');
     res.status(500).json({ success: false, message: 'Server error during password reset' });
   }
 });
@@ -251,4 +263,3 @@ router.put('/profile', protect, [
 });
 
 module.exports = router;
-

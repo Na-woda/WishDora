@@ -411,12 +411,7 @@ async function handleSendOtp() {
     resetEmail = email;
     document.getElementById('otpEmailTarget').textContent = email;
     
-    // If dev OTP returned (console/demo)
-    if (res.devOtp) {
-      showToast('OTP Code: ' + res.devOtp + ' (logged to console)', 'info');
-    } else {
-      showToast(res.message || 'OTP verification code sent to your email!', 'success');
-    }
+    showToast(res.message || 'OTP verification code sent to your email!', 'success');
     
     switchView('viewForgotOtp');
   } catch (err) {

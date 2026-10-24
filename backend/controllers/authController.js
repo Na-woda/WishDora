@@ -2,9 +2,14 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const User = require('../models/User');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { getTokenVersion } = require('../utils/tokenVersion');
 
-const signToken = (id, type) =>
-  jwt.sign({ id, type }, process.env.JWT_SECRET, {
+const signToken = (id, type, tokenVersion) =>
+  jwt.sign({
+    id,
+    type,
+    ...(type === 'user' ? { tokenVersion } : {}),
+  }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 
@@ -63,7 +68,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({ name, email, password });
-  const token = signToken(user._id, 'user');
+  const token = signToken(user._id, 'user', getTokenVersion(user));
   res.status(201).json({ success: true, token, user: sanitizeUser(user) });
 });
 
@@ -86,7 +91,7 @@ const loginUser = asyncHandler(async (req, res) => {
     return res.status(401).json({ success: false, message: 'Invalid credentials' });
   }
 
-  const token = signToken(user._id, 'user');
+  const token = signToken(user._id, 'user', getTokenVersion(user));
   res.status(200).json({ success: true, token, user: sanitizeUser(user) });
 });
 

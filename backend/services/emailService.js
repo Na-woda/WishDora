@@ -2,7 +2,7 @@
 const nodemailer = require('nodemailer');
 
 function escapeHtml(value = '') {
-  return String(value).replace(/[&<>'"]/g, (character) => ({
+  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
   }[character]));
 }
@@ -50,11 +50,15 @@ const transporter = nodemailer.createTransport({
  */
 function buildEmailHTML(wish) {
   const imageUrl = resolveCardImageUrl(wish);
+  const greeting = escapeHtml(wish.greeting);
+  const receiverName = escapeHtml(wish.receiverName);
+  const message = escapeHtml(wish.message).replace(/\r\n?|\n/g, '<br>');
+  const senderName = escapeHtml(wish.senderName);
   console.log('[Email] Final image URL before building email:', imageUrl || '(missing)');
 
   const cardSection = imageUrl
     ? `<div style="text-align:center;margin:20px 0;">
-         <img src="${imageUrl}" alt="Greeting Card"
+         <img src="${escapeHtml(imageUrl)}" alt="Greeting Card"
               style="max-width:280px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,0.15);">
        </div>`
     : '';
@@ -67,7 +71,7 @@ function buildEmailHTML(wish) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${wish.greeting}</title>
+<title>${greeting}</title>
 </head>
 <body style="margin:0;padding:0;background:#fdf8f3;font-family:'Segoe UI',Arial,sans-serif;">
 
@@ -85,7 +89,7 @@ function buildEmailHTML(wish) {
           <td style="background:linear-gradient(135deg,#c25c0c,#e8782a);padding:36px 40px;text-align:center;">
             <div style="font-size:40px;margin-bottom:10px;">🎉</div>
             <h1 style="color:#ffffff;font-size:28px;font-weight:700;margin:0;letter-spacing:-0.5px;">
-              ${wish.greeting}!
+              ${greeting}!
             </h1>
             <p style="color:rgba(255,255,255,0.85);font-size:14px;margin:8px 0 0;letter-spacing:1px;">
               A special message from WishDora 💌
@@ -98,13 +102,13 @@ function buildEmailHTML(wish) {
           <td style="padding:36px 40px;">
 
             <p style="font-size:18px;font-weight:600;color:#1e120a;margin:0 0 6px;">
-              Dear ${wish.receiverName},
+              Dear ${receiverName},
             </p>
 
             <p style="color:#5c3d25;font-size:15px;line-height:1.8;margin:16px 0 24px;
                       background:#fdf4e8;border-left:4px solid #c25c0c;
                       padding:16px 20px;border-radius:0 10px 10px 0;">
-              ${wish.message.replace(/\n/g, '<br>')}
+              ${message}
             </p>
 
             ${cardSection}
@@ -112,7 +116,7 @@ function buildEmailHTML(wish) {
             <div style="margin-top:28px;padding-top:20px;border-top:1px solid #f0e4d4;">
               <p style="color:#9a7860;font-size:13px;margin:0;">With warm wishes,</p>
               <p style="color:#1e120a;font-size:16px;font-weight:600;margin:4px 0 0;">
-                ${wish.senderName}
+                ${senderName}
               </p>
             </div>
 
@@ -305,4 +309,4 @@ async function sendOtpEmail(email, name, otp) {
   });
 }
 
-module.exports = { sendWishEmail, sendWelcomeEmail, sendOtpEmail, sendFeedbackEmail };
+module.exports = { buildEmailHTML, sendWishEmail, sendWelcomeEmail, sendOtpEmail, sendFeedbackEmail };
