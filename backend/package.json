@@ -8,6 +8,7 @@
     "start": "node server.js",
     "predev": "node services/seedAdmin.js",
     "dev": "nodemon server.js",
+    "test": "node --test",
     "seed:admin": "node services/seedAdmin.js"
   },
   "dependencies": {

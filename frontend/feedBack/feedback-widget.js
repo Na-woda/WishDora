@@ -299,6 +299,7 @@
         submitBtn.disabled = true;
         submitBtn.setAttribute('aria-busy', 'true');
         submitBtn.textContent = 'Sending feedback…';
+        let submittedSuccessfully = false;
         try {
           const res = await fetch(`${getApiBase()}/feedback`, {
             method: 'POST',
@@ -309,12 +310,18 @@
           if (!res.ok) throw new Error(data.message || 'Server error');
           showMessage('🤝 Thank you for your feedback! Your feedback has been received and will help us improve WishDora.', 'success');
           localStorage.setItem('wishdoraFeedbackSubmitted', Date.now().toString());
+          submittedSuccessfully = true;
+          submitBtn.textContent = 'Feedback sent';
+          submitBtn.removeAttribute('aria-busy');
+          window.setTimeout(hideWidget, 1500);
         } catch (e) {
           showMessage(e.message || 'Failed to submit feedback. Please try again later.', 'error');
         } finally {
-          submitBtn.disabled = false;
-          submitBtn.removeAttribute('aria-busy');
-          submitBtn.textContent = originalLabel;
+          if (!submittedSuccessfully) {
+            submitBtn.disabled = false;
+            submitBtn.removeAttribute('aria-busy');
+            submitBtn.textContent = originalLabel;
+          }
         }
       }
 

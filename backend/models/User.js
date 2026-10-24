@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   isPremium: {type: Boolean,default: false,},
   premiumSince: {type: Date,default: null,},
   isActive: {type: Boolean,default: true,},
+  tokenVersion: { type: Number, default: 0, min: 0 },
   resetOtp: { type: String, default: null },
   resetOtpExpire: { type: Date, default: null },
   },
@@ -36,6 +37,7 @@ userSchema.methods.comparePassword = async function (candidate) {
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.tokenVersion;
   return obj;
 };
 

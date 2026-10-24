@@ -21,6 +21,15 @@
 .form-group{display:flex;flex-direction:column;gap:6px;font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
 .form-group input,.form-group textarea,.form-group select{padding:10px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none;transition:border-color var(--tr);}
 .form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(194,92,12,.1);}
+.greeting-combobox{position:relative;width:100%;}
+.greeting-input{width:100%;padding-right:78px!important;}
+.greeting-actions{position:absolute;top:50%;right:7px;display:flex;align-items:center;gap:2px;transform:translateY(-50%);}
+.greeting-action{width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:var(--muted);font:inherit;font-size:1rem;cursor:pointer;}
+.greeting-action:hover,.greeting-action:focus-visible{background:var(--accent-s);color:var(--accent);outline:none;}
+.greeting-options{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:20;max-height:260px;overflow-y:auto;margin:0;padding:5px;list-style:none;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);box-shadow:var(--shadow-lg);}
+.greeting-option{min-height:40px;padding:10px 12px;border-radius:6px;color:var(--text);font-size:.9rem;font-weight:400;letter-spacing:normal;text-transform:none;cursor:pointer;}
+.greeting-option:hover,.greeting-option[aria-selected="true"]{background:var(--accent-s);color:var(--accent);}
+.greeting-empty{padding:10px 12px;color:var(--muted);font-size:.85rem;font-weight:400;letter-spacing:normal;text-transform:none;}
 .form-group input[type="date"],
 .form-group input[type="time"]{color-scheme:light;}
 body.dark .form-group input[type="date"],
@@ -560,8 +569,15 @@ body.light-mode .cat-modal {
     <input id="senderName" type="text" placeholder="Your full name" required>
   </div>
   <div class="form-group">
-    <label>Greeting</label>
-    <input id="greeting" type="text" placeholder="Happy Birthday" value="Happy Birthday" oninput="updatePreview()" required>
+    <label for="greeting">Greeting</label>
+    <div class="greeting-combobox">
+      <input id="greeting" class="greeting-input" type="text" placeholder="Select a greeting or type your own..." value="Happy Birthday" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="greetingOptions" required>
+      <div class="greeting-actions">
+        <button id="clearGreeting" class="greeting-action" type="button" aria-label="Clear greeting" title="Clear greeting" hidden>×</button>
+        <button id="toggleGreetingOptions" class="greeting-action" type="button" aria-label="Show greeting suggestions" aria-controls="greetingOptions" aria-expanded="false">▾</button>
+      </div>
+      <ul id="greetingOptions" class="greeting-options" role="listbox" aria-label="Predefined greetings" hidden></ul>
+    </div>
   </div>
   <div class="form-group">
     <label>Receiver Name</label>
@@ -654,7 +670,7 @@ body.light-mode .cat-modal {
     </div>
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label class="custom-upload-btn" title="Upload a custom photo or design from your device">
-        <input type="file" id="customImageInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display:none;" onchange="handleCustomImageUpload(event)">
+        <input type="file" id="customImageInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display:none;color: beige;" onchange="handleCustomImageUpload(event)">
         📸 Upload Custom Picture
       </label>
       <div class="cat-search-wrap">
@@ -802,6 +818,163 @@ document.getElementById('deliveryOpts').addEventListener('click', e => {
   updateScheduleButtonState();
 });
 updateScheduleButtonState();
+
+const greetingInput = document.getElementById('greeting');
+const greetingOptions = document.getElementById('greetingOptions');
+const greetingOptionsButton = document.getElementById('toggleGreetingOptions');
+const clearGreetingButton = document.getElementById('clearGreeting');
+const predefinedGreetings = [
+  'Happy Birthday 🎂',
+  'Happy Anniversary ❤️',
+  'Happy Wedding 💍',
+  'Congratulations 🎉',
+  'Good Morning 🌞',
+  'Good Afternoon ☀️',
+  'Good Evening 🌅',
+  'Good Night 🌙',
+  "Happy Valentine's Day 💕",
+  "Happy Mother's Day 💐",
+  "Happy Father's Day 👔",
+  'Happy New Year 🎆',
+  'Merry Christmas 🎄',
+  'Happy Easter 🐣',
+  'Happy Graduation 🎓',
+  'Happy Retirement 🌟',
+  'Get Well Soon 🌷',
+  'Best Wishes 🍀',
+  'Good Luck 🤞',
+  'Thank You 🙏',
+  "I'm Sorry 💌",
+  'Welcome 🎊',
+  'Farewell 👋',
+  'Happy Friendship Day 🫂',
+  "Happy Women's Day 🌸",
+  "Happy Children's Day 🧸",
+  "Happy Teacher's Day 🍎",
+  'Happy Independence Day 🇱🇰',
+  'Eid Mubarak 🌙',
+  "Happy Valentine's Anniversary 💖",
+];
+let activeGreetingOption = -1;
+
+function setGreetingOptionsOpen(isOpen) {
+  greetingOptions.hidden = !isOpen;
+  greetingInput.setAttribute('aria-expanded', String(isOpen));
+  greetingOptionsButton.setAttribute('aria-expanded', String(isOpen));
+  if (!isOpen) {
+    activeGreetingOption = -1;
+    greetingInput.removeAttribute('aria-activedescendant');
+  }
+}
+
+function renderGreetingOptions(query = '') {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const matches = predefinedGreetings.filter((greeting) =>
+    greeting.toLocaleLowerCase().includes(normalizedQuery)
+  );
+  greetingOptions.replaceChildren();
+  activeGreetingOption = -1;
+  greetingInput.removeAttribute('aria-activedescendant');
+
+  if (!matches.length) {
+    const emptyState = document.createElement('li');
+    emptyState.className = 'greeting-empty';
+    emptyState.textContent = 'No matching suggestions. Your custom greeting is welcome.';
+    emptyState.setAttribute('role', 'status');
+    greetingOptions.appendChild(emptyState);
+    return;
+  }
+
+  matches.forEach((greeting, index) => {
+    const option = document.createElement('li');
+    option.id = `greetingOption${index}`;
+    option.className = 'greeting-option';
+    option.setAttribute('role', 'option');
+    option.setAttribute('aria-selected', 'false');
+    option.textContent = greeting;
+    greetingOptions.appendChild(option);
+  });
+}
+
+function selectGreeting(greeting) {
+  greetingInput.value = greeting;
+  clearGreetingButton.hidden = false;
+  setGreetingOptionsOpen(false);
+  greetingInput.classList.remove('field-invalid');
+  greetingInput.removeAttribute('aria-invalid');
+  updatePreview();
+}
+
+greetingInput.addEventListener('focus', () => {
+  renderGreetingOptions();
+  setGreetingOptionsOpen(true);
+});
+greetingInput.addEventListener('input', () => {
+  renderGreetingOptions(greetingInput.value);
+  setGreetingOptionsOpen(true);
+  clearGreetingButton.hidden = !greetingInput.value;
+  updatePreview();
+});
+greetingInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !greetingOptions.hidden) {
+    setGreetingOptionsOpen(false);
+    return;
+  }
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+    if (event.key === 'Enter' && !greetingOptions.hidden && activeGreetingOption >= 0) {
+      event.preventDefault();
+      const option = greetingOptions.children[activeGreetingOption];
+      if (option?.getAttribute('role') === 'option') selectGreeting(option.textContent);
+    }
+    return;
+  }
+
+  event.preventDefault();
+  if (greetingOptions.hidden) {
+    renderGreetingOptions();
+    setGreetingOptionsOpen(true);
+  }
+  const options = [...greetingOptions.querySelectorAll('[role="option"]')];
+  if (!options.length) return;
+  const direction = event.key === 'ArrowDown' ? 1 : -1;
+  activeGreetingOption = (activeGreetingOption + direction + options.length) % options.length;
+  options.forEach((option, index) => {
+    const isActive = index === activeGreetingOption;
+    option.setAttribute('aria-selected', String(isActive));
+    if (isActive) {
+      greetingInput.setAttribute('aria-activedescendant', option.id);
+      option.scrollIntoView({ block: 'nearest' });
+    }
+  });
+});
+greetingOptions.addEventListener('mousedown', (event) => event.preventDefault());
+greetingOptions.addEventListener('click', (event) => {
+  const option = event.target.closest('[role="option"]');
+  if (option) selectGreeting(option.textContent);
+});
+greetingOptionsButton.addEventListener('click', () => {
+  if (greetingOptions.hidden) {
+    renderGreetingOptions();
+    setGreetingOptionsOpen(true);
+    greetingInput.focus();
+  } else {
+    setGreetingOptionsOpen(false);
+  }
+});
+clearGreetingButton.addEventListener('click', () => {
+  greetingInput.value = '';
+  clearGreetingButton.hidden = true;
+  renderGreetingOptions();
+  setGreetingOptionsOpen(true);
+  greetingInput.focus();
+  greetingInput.classList.remove('field-invalid');
+  greetingInput.removeAttribute('aria-invalid');
+  updatePreview();
+});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.greeting-combobox')) setGreetingOptionsOpen(false);
+});
+clearGreetingButton.hidden = !greetingInput.value;
 
 const requiredWishFields = [
   { id: 'senderName', label: 'Your Name' },
